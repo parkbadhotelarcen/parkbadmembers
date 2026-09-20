@@ -8,7 +8,7 @@ Node.js 22 LTS recommended. Run `npm ci`, `npm run dev`. Validation: `npm run li
 
 ## Structure
 
-- `src/app`: shared layout, validated screen routes, loading/error/not-found boundaries, manifest and temporary typographic app icon.
+- `app/`: App Router at the repository root, shared layout, validated screen routes, loading/error/not-found boundaries, manifest and temporary typographic app icon.
 - `src/components`: app shell/screens, reusable cards and navigation, in-memory mock repository provider.
 - `src/lib/types.ts`: domain contracts for members, visits, benefits and rewards.
 - `src/lib/mock-data.ts`: fictitious member, visits, configurable benefit content and brand asset location.
