@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { brand } from "@/lib/mock-data";
-import { formatDate, loyaltyConfig, rewardProgress } from "@/lib/loyalty";
+import { formatDate, rewardProgress } from "@/lib/loyalty";
 import type { Benefit, Visit, VisitStatus } from "@/lib/types";
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
@@ -68,8 +68,13 @@ export function StatusBadge({ status }: { status: VisitStatus }) {
     </span>
   );
 }
-export function ProgressCard({ visits }: { visits: Visit[] }) {
-  const p = rewardProgress(visits);
+export function ProgressCard({
+  progress: p,
+  name,
+}: {
+  progress: ReturnType<typeof rewardProgress>;
+  name: string;
+}) {
   return (
     <Link href="/beloningen" className="card progress-card">
       <div className="eyebrow">ELK VERBLIJF BRENGT JE DICHTERBIJ</div>
@@ -95,7 +100,7 @@ export function ProgressCard({ visits }: { visits: Visit[] }) {
         />
         <strong>{p.percent}%</strong>
       </div>
-      <RewardCard name={loyaltyConfig.nextRewardName} remaining={p.remaining} />
+      <RewardCard name={name} remaining={p.remaining} />
     </Link>
   );
 }
@@ -207,6 +212,7 @@ export function BenefitCard({
     <Link href={`/voordelen/${benefit.id}`} className="benefit-card">
       <Image
         src={benefit.image}
+        unoptimized={benefit.image.startsWith("https://")}
         alt=""
         fill
         sizes="(max-width: 700px) 100vw, 500px"

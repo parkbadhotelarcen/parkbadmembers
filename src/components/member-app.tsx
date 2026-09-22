@@ -25,19 +25,9 @@ import {
   Waves,
   X,
 } from "lucide-react";
-import {
-  benefits,
-  brand,
-  member,
-  rewards,
-  demoReferenceDate,
-} from "@/lib/mock-data";
-import {
-  formatDate,
-  loyaltyConfig,
-  rewardProgress,
-  validateVisit,
-} from "@/lib/loyalty";
+import { brand } from "@/lib/mock-data";
+import { signOut } from "next-auth/react";
+import { formatDate, validateVisit } from "@/lib/loyalty";
 import { useMembers } from "./app-provider";
 import { BottomNavigation } from "./navigation";
 import {
@@ -53,8 +43,8 @@ import {
 } from "./ui";
 
 function Stats() {
-  const { visits } = useMembers();
-  return <MemberStats progress={rewardProgress(visits)} />;
+  const { progress, member } = useMembers();
+  return <MemberStats progress={progress} level={member.memberLevel} />;
 }
 function Hero({ small = false }: { small?: boolean }) {
   return (
@@ -82,12 +72,13 @@ function Hero({ small = false }: { small?: boolean }) {
   );
 }
 function HomeScreen() {
-  const { visits } = useMembers();
+  const { visits, member, benefits, progress, nextRewardName, referenceDate } =
+    useMembers();
   const next = visits
     .filter(
       (v) =>
         (v.status === "PENDING" || v.status === "APPROVED") &&
-        v.arrivalDate >= demoReferenceDate,
+        v.arrivalDate >= referenceDate,
     )
     .sort((a, b) => a.arrivalDate.localeCompare(b.arrivalDate))[0];
   return (
@@ -110,7 +101,7 @@ function HomeScreen() {
       </header>
       <div className="home-grid">
         <div className="home-cards">
-          <ProgressCard visits={visits} />
+          <ProgressCard progress={progress} name={nextRewardName} />
           <NextVisit visit={next} />
           <div className="quiet-note">
             <Heart size={17} /> Bij ons ben je meer dan een gast.
@@ -144,19 +135,20 @@ function HomeScreen() {
   );
 }
 function MemberCardScreen() {
-  const { visits } = useMembers();
+  const { member, progress } = useMembers();
   return (
     <>
       <PageHeader
         title="Mijn QR-code"
         subtitle="Jouw persoonlijke pas, altijd bij de hand"
       />
-      <MemberCard member={member} progress={rewardProgress(visits)} />
+      <MemberCard member={member} progress={progress} />
     </>
   );
 }
 function RegisterVisit() {
-  const { visits, addVisit } = useMembers();
+  const { visits, createVisit, mode } = useMembers();
+  const requestId = useRef({ payload: "", id: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -178,12 +170,14 @@ function RegisterVisit() {
               </span>
               <h2>Bezoek aangemeld</h2>
               <p>
-                Wij controleren de boeking. Je ontvangt een bericht zodra deze
-                is goedgekeurd.
+                De receptie controleert de boeking. Je kunt de status volgen bij
+                Mijn boekingen.
               </p>
-              <p className="muted">
-                Dit is een demo: er wordt geen bericht verstuurd.
-              </p>
+              {mode === "demo" && (
+                <p className="muted">
+                  Dit is een demo: het bezoek wordt niet opgeslagen.
+                </p>
+              )}
               <Link href={`/boekingen/${success}`} className="primary">
                 Bekijk je boeking <ArrowRight size={18} />
               </Link>
@@ -191,6 +185,7 @@ function RegisterVisit() {
                 className="text-button"
                 onClick={() => {
                   setSuccess(null);
+                  requestId.current = { payload: "", id: "" };
                   lock.current = false;
                 }}
               >
@@ -204,7 +199,7 @@ function RegisterVisit() {
                 Vul je boekingsgegevens in om je volgende bezoek te registreren.
               </p>
               <form
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
                   if (lock.current) return;
                   const data = new FormData(e.currentTarget);
@@ -217,18 +212,29 @@ function RegisterVisit() {
                   }
                   lock.current = true;
                   setBusy(true);
-                  const id = crypto.randomUUID();
-                  addVisit({
-                    id,
-                    userId: member.id,
-                    bookingNumber: number,
-                    arrivalDate: arrival,
-                    status: "PENDING",
-                    createdAt: new Date().toISOString(),
-                  });
-                  setSuccess(id);
-                  setBusy(false);
-                  setError("");
+                  const payload = JSON.stringify([
+                    number.toUpperCase(),
+                    arrival,
+                  ]);
+                  if (requestId.current.payload !== payload)
+                    requestId.current = { payload, id: crypto.randomUUID() };
+                  try {
+                    const visit = await createVisit(
+                      { bookingNumber: number, arrivalDate: arrival },
+                      requestId.current.id,
+                    );
+                    setSuccess(visit.id);
+                    setError("");
+                  } catch (e) {
+                    setError(
+                      e instanceof Error
+                        ? e.message
+                        : "Aanmelden mislukt. Probeer het opnieuw.",
+                    );
+                  } finally {
+                    setBusy(false);
+                    lock.current = false;
+                  }
                 }}
               >
                 <label htmlFor="bookingNumber">Boekingsnummer</label>
@@ -318,13 +324,13 @@ function Bookings() {
   );
 }
 function BookingDetail({ id }: { id: string }) {
-  const { visits } = useMembers();
+  const { visits, member } = useMembers();
   const v = visits.find((v) => v.id === id);
   if (!v)
     return (
       <>
         <PageHeader title="Boeking niet gevonden" back="/boekingen" />
-        <EmptyState title="Deze demoboeking is niet meer beschikbaar" />
+        <EmptyState title="Deze boeking is niet beschikbaar" />
       </>
     );
   return (
@@ -372,8 +378,7 @@ function BookingDetail({ id }: { id: string }) {
   );
 }
 function Rewards() {
-  const { visits } = useMembers();
-  const p = rewardProgress(visits);
+  const { progress: p, rewards, nextRewardName } = useMembers();
   return (
     <>
       <PageHeader
@@ -408,21 +413,25 @@ function Rewards() {
               ? `Nog ${p.remaining === 1 ? "één" : p.remaining} bezoek${p.remaining !== 1 ? "en" : ""} en je ontvangt je volgende beloning.`
               : "Je volgende beloning kan worden toegekend."}
           </p>
-          <RewardCard
-            name={loyaltyConfig.nextRewardName}
-            remaining={p.remaining}
-            detail
-          />
+          <RewardCard name={nextRewardName} remaining={p.remaining} detail />
         </section>
         <section className="card history">
           <h2>Eerder verdiend</h2>
           <p className="muted">Kleine extraatjes, mooie herinneringen.</p>
+          {!rewards.length && <p>Je hebt nog geen beloningen verdiend.</p>}
           {rewards.map((r) => (
             <div className="history-row" key={r.id}>
               <Gift size={22} />
               <div>
                 <strong>{r.name}</strong>
-                <span>{formatDate(r.earnedAt)}</span>
+                <span>
+                  {formatDate(r.earnedAt)} ·{" "}
+                  {r.status === "AVAILABLE"
+                    ? "Beschikbaar"
+                    : r.status === "REDEEMED"
+                      ? "Gebruikt"
+                      : "Verlopen"}
+                </span>
               </div>
               <Check size={16} />
             </div>
@@ -440,6 +449,7 @@ function Rewards() {
   );
 }
 function Benefits() {
+  const { benefits, promotions, mode } = useMembers();
   return (
     <>
       <PageHeader
@@ -450,6 +460,34 @@ function Benefits() {
         Als Parkbad Member profiteer je van exclusieve voordelen tijdens je
         verblijf.
       </p>
+      {benefits.length === 0 && (
+        <p>Er zijn momenteel geen actieve voordelen.</p>
+      )}
+      {promotions.length > 0 && (
+        <section className="promotions">
+          <h2>Acties</h2>
+          {promotions.map((p) => (
+            <article className="card detail-card" key={p.id}>
+              {p.image && (
+                <div className="editorial-image">
+                  <Image
+                    src={p.image}
+                    alt=""
+                    fill
+                    sizes="(max-width:700px) 100vw, 800px"
+                    unoptimized={p.image.startsWith("https://")}
+                  />
+                </div>
+              )}
+              <h3>{p.title}</h3>
+              <p>{p.description}</p>
+              <small>
+                Van {formatDate(p.startDate)} tot en met {formatDate(p.endDate)}
+              </small>
+            </article>
+          ))}
+        </section>
+      )}
       <div className="benefits-grid">
         {benefits
           .filter((b) => b.active)
@@ -458,7 +496,9 @@ function Benefits() {
           ))}
       </div>
       <p className="list-note">
-        Voordelen en sfeerbeelden zijn ter illustratie.
+        {mode === "demo"
+          ? "Voordelen en sfeerbeelden zijn ter illustratie."
+          : "Vraag de receptie naar de voorwaarden van jouw voordelen."}
       </p>
     </>
   );
@@ -509,7 +549,7 @@ const menu = [
 ];
 function Logout() {
   const dialog = useRef<HTMLDialogElement>(null);
-  const { reset } = useMembers();
+  const { reset, mode } = useMembers();
   const router = useRouter();
   return (
     <>
@@ -526,20 +566,25 @@ function Logout() {
         >
           <X />
         </button>
-        <h2>Demo afsluiten?</h2>
+        <h2>{mode === "demo" ? "Demo afsluiten?" : "Uitloggen?"}</h2>
         <p>
-          Je toegevoegde demobezoeken worden gewist. Je kunt de demo daarna
-          opnieuw openen.
+          {mode === "demo"
+            ? "Je toegevoegde demobezoeken worden gewist."
+            : "Je kunt later opnieuw inloggen met Google. Je gegevens blijven bewaard."}
         </p>
         <button
           className="primary"
           onClick={() => {
+            if (mode === "sheets") {
+              void signOut({ callbackUrl: "/" });
+              return;
+            }
             reset();
             dialog.current?.close();
             router.push("/welkom");
           }}
         >
-          Demo afsluiten
+          {mode === "demo" ? "Demo afsluiten" : "Uitloggen"}
         </button>
         <button className="secondary" onClick={() => dialog.current?.close()}>
           Annuleren
@@ -569,6 +614,7 @@ function More() {
   );
 }
 function Profile() {
+  const { member } = useMembers();
   return (
     <>
       <PageHeader title="Mijn profiel" back="/meer" />
@@ -609,6 +655,7 @@ function Profile() {
   );
 }
 function InfoScreen({ route }: { route: string }) {
+  const { member, benefits, mode } = useMembers();
   const benefit = benefits.find((b) => `voordelen/${b.id}` === route);
   if (benefit)
     return (
@@ -618,6 +665,7 @@ function InfoScreen({ route }: { route: string }) {
           <div className="editorial-image">
             <Image
               src={benefit.image}
+              unoptimized={benefit.image.startsWith("https://")}
               alt="Sfeerimpressie"
               fill
               sizes="(max-width:700px) 100vw, 800px"
@@ -630,8 +678,9 @@ function InfoScreen({ route }: { route: string }) {
             <div className="info-box">
               <Info />
               <p>
-                Voorbeeldcontent. De actuele voorwaarden worden later door het
-                hotel toegevoegd.
+                {mode === "demo"
+                  ? "Voorbeeldcontent. De actuele voorwaarden volgen later."
+                  : "Vraag de receptie naar beschikbaarheid en voorwaarden."}
               </p>
             </div>
             <Link href="/contact" className="primary">
@@ -683,13 +732,25 @@ function InfoScreen({ route }: { route: string }) {
             ))}
           </dl>
           <p className="muted">
-            Dit zijn fictieve gegevens. Bewerken wordt mogelijk na aansluiting
-            van het accountbeheer.
+            {mode === "demo"
+              ? "Dit zijn fictieve gegevens."
+              : "Neem voor het wijzigen van je gegevens contact op met de receptie."}
           </p>
         </div>
       </>
     );
-  const c = content[route];
+  if (mode === "sheets") {
+    content.privacy.text =
+      "Je membership en bezoeken worden opgeslagen in de beveiligde administratie van Parkbad Members. Google verzorgt het inloggen. Je browser gebruikt een sessiecookie. Het volledige privacybeleid wordt voor de lancering toegevoegd.";
+    content.voorwaarden.text =
+      "Alleen goedgekeurde en bezochte verblijven tellen mee. De receptie kent beloningen toe. De definitieve voorwaarden volgen voor de lancering.";
+    content.instellingen.text =
+      "Je logt in met je Google-account. Neem voor wijzigingen in je membership contact op met de receptie.";
+  }
+  const c = content[route] ?? {
+    title: "Voordeel niet beschikbaar",
+    text: "Dit voordeel is niet meer actief. Bekijk Mijn voordelen voor het actuele aanbod.",
+  };
   return (
     <>
       <PageHeader title={c.title} back="/meer" />
@@ -707,6 +768,7 @@ function InfoScreen({ route }: { route: string }) {
   );
 }
 export function MemberApp({ route }: { route: string }) {
+  const { member, mode } = useMembers();
   let screen;
   if (route === "") screen = <HomeScreen />;
   else if (route === "qr-code") screen = <MemberCardScreen />;
@@ -734,13 +796,16 @@ export function MemberApp({ route }: { route: string }) {
           Ontdek Parkbad Members.
         </p>
         <Link href="/" className="primary gold-button">
-          Open de demo <ArrowRight size={19} />
+          {mode === "demo" ? "Open de demo" : "Mijn membership"}{" "}
+          <ArrowRight size={19} />
         </Link>
       </div>
     );
   else screen = <InfoScreen route={route} />;
   return (
-    <div className={`app-shell ${route === "welkom" ? "welcome-shell" : route ? "secondary-page" : ""}`}>
+    <div
+      className={`app-shell ${route === "welkom" ? "welcome-shell" : route ? "secondary-page" : ""}`}
+    >
       <a className="skip-link" href="#main">
         Ga naar inhoud
       </a>
@@ -750,16 +815,21 @@ export function MemberApp({ route }: { route: string }) {
         </Link>
         <span className="topbar-note">JOUW VERBLIJF. JOUW VOORDELEN.</span>
         <Link className="desktop-member" href="/profiel">
-          <span className="avatar">MP</span>
+          <span className="avatar">
+            {member.firstName[0]}
+            {member.lastName[0]}
+          </span>
           <span>
             {member.firstName} {member.lastName}
             <small>Member {member.memberNumber}</small>
           </span>
         </Link>
       </div>
-      <div className="demo-note">
-        Demoversie <span>·</span> Ontdek jouw membership
-      </div>
+      {mode === "demo" && (
+        <div className="demo-note">
+          Demoversie <span>·</span> Ontdek jouw membership
+        </div>
+      )}
       <main
         id="main"
         className={`main-content ${route === "" ? "home-page" : ""}`}

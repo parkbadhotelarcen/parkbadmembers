@@ -24,7 +24,16 @@ export default function RootLayout({
   return (
     <html lang="nl">
       <body>
-        <AppProvider>{children}</AppProvider>
+        <AppProvider
+          mode={
+            process.env.PARKBAD_DATA_MODE &&
+            process.env.PARKBAD_DATA_MODE !== "demo"
+              ? "sheets"
+              : "demo"
+          }
+        >
+          {children}
+        </AppProvider>
       </body>
     </html>
   );

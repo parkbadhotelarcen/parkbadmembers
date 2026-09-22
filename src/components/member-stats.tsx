@@ -3,9 +3,11 @@ import type { rewardProgress } from "@/lib/loyalty";
 export function MemberStats({
   progress: p,
   card = false,
+  level = "MEMBER",
 }: {
   progress: ReturnType<typeof rewardProgress>;
   card?: boolean;
+  level?: "MEMBER" | "SILVER" | "GOLD";
 }) {
   return (
     <div className="stats">
@@ -21,7 +23,13 @@ export function MemberStats({
       </div>
       <div>
         <Crown />
-        <strong>Member</strong>
+        <strong>
+          {level === "MEMBER"
+            ? "Member"
+            : level === "SILVER"
+              ? "Silver"
+              : "Gold"}
+        </strong>
         <span>Niveau</span>
       </div>
     </div>

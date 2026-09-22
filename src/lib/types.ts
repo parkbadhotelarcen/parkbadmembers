@@ -26,7 +26,7 @@ export interface UserReward {
   userId: string;
   name: string;
   earnedAt: string;
-  status: "AVAILABLE" | "REDEEMED";
+  status: "AVAILABLE" | "REDEEMED" | "EXPIRED";
   cycle?: number;
 }
 export interface Benefit {
@@ -37,4 +37,23 @@ export interface Benefit {
   image: string;
   category: string;
   active: boolean;
+}
+export interface Promotion {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  startDate: string;
+  endDate: string;
+}
+export interface PortalData {
+  member: Member;
+  visits: Visit[];
+  rewards: UserReward[];
+  benefits: Benefit[];
+  promotions: Promotion[];
+  required: number;
+  consumed: number;
+  nextRewardName: string;
+  referenceDate: string;
 }

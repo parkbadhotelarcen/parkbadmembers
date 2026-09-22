@@ -1743,3 +1743,8 @@ dd {
     scroll-behavior: auto !important;
   }
 }
+
+.milestones { flex-wrap: wrap; }
+.access-gate { max-width: 520px; margin: 40px auto; }
+.access-gate form { display: grid; gap: 12px; text-align: left; }
+.promotions { display: grid; gap: 16px; margin-bottom: 24px; }

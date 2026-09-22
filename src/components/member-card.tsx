@@ -39,7 +39,7 @@ export function MemberCard({
         <p className="member-since">
           Lid sinds {formatDate(member.memberSince)}
         </p>
-        <MemberStats card progress={progress} />
+        <MemberStats card progress={progress} level={member.memberLevel} />
         <div className="card-footer">
           <ShieldCheck size={14} /> PERSOONLIJK & EXCLUSIEF
         </div>
