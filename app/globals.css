@@ -1748,3 +1748,66 @@ dd {
 .access-gate { max-width: 520px; margin: 40px auto; }
 .access-gate form { display: grid; gap: 12px; text-align: left; }
 .promotions { display: grid; gap: 16px; margin-bottom: 24px; }
+
+.auth-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background:
+    radial-gradient(circle at 50% 0%, #d7c08233, transparent 36%),
+    var(--cream);
+}
+.auth-panel {
+  width: min(100%, 500px);
+  padding: 30px 18px 24px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: #fffdfa;
+  box-shadow: 0 18px 60px #15392d12;
+}
+.auth-brand {
+  display: grid;
+  justify-items: center;
+  color: var(--gold);
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: 5px;
+  line-height: 1;
+  margin-bottom: 24px;
+}
+.auth-brand span { font-size: 30px; }
+.auth-brand small {
+  margin-top: 9px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 9px;
+  letter-spacing: 6px;
+}
+.auth-copy { text-align: center; margin: 0 auto 20px; }
+.auth-copy h1 { color: var(--deep); }
+.auth-copy p { color: var(--muted); margin-top: 9px; font-size: 14px; }
+.clerk-root, .clerk-card-box { width: 100%; }
+.clerk-card-box { box-shadow: none; }
+.clerk-card { padding: 0; background: transparent; box-shadow: none; }
+.clerk-hidden { display: none; }
+.clerk-primary {
+  min-height: 50px;
+  background: var(--green);
+  box-shadow: none;
+  font-weight: 700;
+}
+.clerk-primary:hover, .clerk-primary:focus { background: var(--deep); }
+.clerk-social, .clerk-input {
+  min-height: 48px;
+  border-color: #b9c4be;
+  box-shadow: none;
+}
+.clerk-social:hover { background: #f5f1e8; }
+.clerk-input:focus { border-color: var(--green); box-shadow: 0 0 0 2px #07594c22; }
+.clerk-label { color: var(--ink); font-weight: 700; }
+.clerk-divider { background: var(--line); }
+.clerk-divider-text { color: var(--muted); }
+.clerk-footer { background: transparent; }
+
+@media (min-width: 540px) {
+  .auth-panel { padding: 38px 34px 30px; }
+}

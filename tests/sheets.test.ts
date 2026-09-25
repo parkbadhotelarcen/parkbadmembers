@@ -7,7 +7,6 @@ import {
   headers,
   parseTable,
   newVisitInput,
-  newMemberInput,
   type Tables,
 } from "../src/lib/google-sheets/schema";
 import { MemberService } from "../src/services/member-service";
@@ -113,7 +112,13 @@ function harness() {
     return {
       operation,
       input,
-      actor: { email, isAdmin },
+      actor: {
+        authUserId: `user_${email}`,
+        email,
+        firstName: "Guest",
+        lastName: "Member",
+        isAdmin,
+      },
       issuedAt: Date.now(),
     };
   }
@@ -145,7 +150,7 @@ function harness() {
 
 test("Apps Script rejects forged, expired and contending requests before data access", () => {
   const h = harness(),
-    c = h.command("createMember", { firstName: "One", lastName: "" });
+    c = h.command("activateMember", {});
   assert.equal(h.send(c, true).code, "FORBIDDEN");
   assert.equal(h.send({ ...c, issuedAt: 0 }).code, "FORBIDDEN");
   h.busy(true);
@@ -161,8 +166,8 @@ test("serialized members remain unique, retry is idempotent and counter survives
     assert.equal(
       h.send(
         h.command(
-          "createMember",
-          { firstName: "Guest", lastName: "" },
+          "activateMember",
+          {},
           i + "@example.com",
         ),
       ).data.MemberID,
@@ -171,8 +176,8 @@ test("serialized members remain unique, retry is idempotent and counter survives
   assert.equal(
     h.send(
       h.command(
-        "createMember",
-        { firstName: "Guest", lastName: "" },
+        "activateMember",
+        {},
         "0@example.com",
       ),
     ).data.MemberID,
@@ -180,17 +185,36 @@ test("serialized members remain unique, retry is idempotent and counter survives
   );
   h.rows.Members.pop();
   assert.equal(
-    h.send(h.command("createMember", { firstName: "New", lastName: "" })).data
+    h.send(h.command("activateMember", {})).data
       .MemberID,
     "KV-031",
   );
   assert.equal(h.stats().writes, 31);
 });
+test("a verified account claims an existing member without creating a second MemberID", () => {
+  const h = harness();
+  h.rows.Members.push([
+    "KV-042",
+    "",
+    "Existing",
+    "Member",
+    "existing@example.com",
+    "2025-01-01",
+    "MEMBER",
+    "ACTIVE",
+    "2025-01-01T10:00:00+01:00",
+    "2025-01-01T10:00:00+01:00",
+  ]);
+  const result = h.send(h.command("activateMember", {}, "existing@example.com"));
+  assert.equal(result.data.MemberID, "KV-042");
+  assert.equal(result.data.AuthUserID, "user_existing@example.com");
+  assert.equal(h.rows.Members.length, 2);
+});
 test("booking uniqueness is global and normalized, retries cannot switch owners", () => {
   const h = harness();
   for (const email of ["one@example.com", "two@example.com"])
     h.send(
-      h.command("createMember", { firstName: "Guest", lastName: "" }, email),
+      h.command("activateMember", {}, email),
     );
   const input = {
     bookingNumber: " abcd ",
@@ -222,7 +246,7 @@ test("booking uniqueness is global and normalized, retries cannot switch owners"
 });
 test("only admins approve and award, awards consume visits once in the same batch", () => {
   const h = harness();
-  h.send(h.command("createMember", { firstName: "Guest", lastName: "" }));
+  h.send(h.command("activateMember", {}));
   h.rows.Beloningen.push(["gift", "Gift", "A gift", "TRUE"]);
   const ids = [];
   for (let i = 0; i < 5; i++) {
@@ -308,23 +332,20 @@ test("only admins approve and award, awards consume visits once in the same batc
 });
 test("formula-like text is stored as literal text and failed writes release lock", () => {
   const h = harness();
+  const formulaCommand = h.command("activateMember", {});
+  formulaCommand.actor.firstName = '=IMPORTXML("example")';
   assert.equal(
-    h.send(
-      h.command("createMember", {
-        firstName: '=IMPORTXML("example")',
-        lastName: "",
-      }),
-    ).ok,
+    h.send(formulaCommand).ok,
     true,
   );
-  assert.equal(h.rows.Members[1][1], '=IMPORTXML("example")');
+  assert.equal(h.rows.Members[1][2], '=IMPORTXML("example")');
   h.context.Sheets.Spreadsheets.batchUpdate = () => {
     throw Error("secret error");
   };
   const response = h.send(
     h.command(
-      "createMember",
-      { firstName: "Two", lastName: "" },
+      "activateMember",
+      {},
       "two@example.com",
     ),
   );
@@ -344,14 +365,6 @@ test("strict schemas reject user-supplied identity, malformed dates, headers and
       bookingNumber: "BOOK",
       arrivalDate: "2099-01-01",
       memberId: "KV-002",
-    }).success,
-    false,
-  );
-  assert.equal(
-    newMemberInput.safeParse({
-      firstName: "A",
-      lastName: "",
-      email: "other@example.com",
     }).success,
     false,
   );
@@ -375,7 +388,7 @@ test("service isolates members in batched portal reads and denies foreign email 
   const h = harness();
   for (const email of ["one@example.com", "two@example.com"])
     h.send(
-      h.command("createMember", { firstName: "Guest", lastName: "" }, email),
+      h.command("activateMember", {}, email),
     );
   h.send(
     h.command(
@@ -408,7 +421,13 @@ test("service isolates members in batched portal reads and denies foreign email 
       },
     },
   );
-  const actor = { email: "one@example.com", isAdmin: false };
+  const actor = {
+    authUserId: "user_one@example.com",
+    email: "one@example.com",
+    firstName: "One",
+    lastName: "Member",
+    isAdmin: false,
+  };
   const portal = await service.getPortal(actor);
   assert.equal(portal.member.MemberID, "KV-001");
   assert.deepEqual(portal.visits, []);

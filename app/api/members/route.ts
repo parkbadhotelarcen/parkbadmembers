@@ -5,10 +5,8 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   return endpoint(async () => {
     const actor = await requireIdentity();
-    const member = await memberService.createMember(
-      actor,
-      await input(request),
-    );
+    await input(request);
+    const member = await memberService.activateMember(actor);
     return { memberId: member.MemberID };
   });
 }

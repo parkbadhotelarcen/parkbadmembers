@@ -23,12 +23,14 @@ export const visitStatus = z.enum([
 export const schemas = {
   Members: z.object({
     MemberID: memberId,
+    // Empty only for legacy members that have not activated their Clerk login.
+    AuthUserID: z.string().max(100),
     Voornaam: z.string().min(1).max(100),
     Achternaam: z.string().max(100),
     Email: z.email().transform((v) => v.toLowerCase().trim()),
     LidSinds: date,
     Niveau: z.enum(["MEMBER", "SILVER", "GOLD"]),
-    Status: z.enum(["ACTIVE", "BLOCKED"]),
+    Status: z.enum(["PENDING", "ACTIVE", "BLOCKED"]),
     CreatedAt: timestamp,
     UpdatedAt: timestamp,
   }),
@@ -78,6 +80,7 @@ export const schemas = {
 export const headers = {
   Members: [
     "MemberID",
+    "AuthUserID",
     "Voornaam",
     "Achternaam",
     "Email",
@@ -129,12 +132,6 @@ export type Table = keyof typeof schemas;
 export type Records = { [K in Table]: z.output<(typeof schemas)[K]> };
 export type SheetRow<T extends Table> = { row: number; value: Records[T] };
 export type Tables = { [K in Table]: SheetRow<K>[] };
-export const newMemberInput = z
-  .object({
-    firstName: z.string().trim().min(1).max(100),
-    lastName: z.string().trim().max(100),
-  })
-  .strict();
 export const newVisitInput = z
   .object({
     bookingNumber: z

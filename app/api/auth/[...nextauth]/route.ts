@@ -1,14 +1,17 @@
 import NextAuth from "next-auth";
-import { authConfigured, authOptions } from "@/lib/auth";
+import {
+  legacyGoogleAuthConfigured,
+  legacyGoogleAuthOptions,
+} from "@/lib/legacy-google-auth";
 import { json } from "@/lib/api";
-const handler = NextAuth(authOptions);
+const handler = NextAuth(legacyGoogleAuthOptions);
 function guarded(
   request: Request,
   context: { params: Promise<{ nextauth: string[] }> },
 ) {
-  return authConfigured()
+  return legacyGoogleAuthConfigured()
     ? handler(request, context)
-    : json({ message: "Google-login is nog niet ingesteld." }, 503);
+    : json({ message: "De oude Google-login is uitgeschakeld." }, 404);
 }
 export { guarded as GET, guarded as POST };
 export const runtime = "nodejs";

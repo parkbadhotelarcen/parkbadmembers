@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-  newMemberInput,
   newVisitInput,
   visitStatus,
   memberId as memberIdSchema,
@@ -17,7 +16,7 @@ export function ownMember(
 ): Records["Members"] {
   const matches =
     tables.Members?.filter(
-      (row) => row.value.Email === actor.email.toLowerCase().trim(),
+      (row) => row.value.AuthUserID === actor.authUserId,
     ) ?? [];
   if (matches.length > 1)
     throw new DataError(
@@ -28,6 +27,12 @@ export function ownMember(
   const member = matches[0]?.value;
   if (!member)
     throw new DataError("MEMBER_MISSING", "Je hebt nog geen membership.", 404);
+  if (member.Status === "PENDING")
+    throw new DataError(
+      "PENDING",
+      "Verifieer je account voordat je de Member-voordelen gebruikt.",
+      403,
+    );
   if (member.Status !== "ACTIVE")
     throw new DataError(
       "FORBIDDEN",
@@ -69,7 +74,7 @@ export class MemberService {
     const tables = await this.store.read(["Members"]);
     if (!actor.isAdmin) {
       const found = tables.Members?.some(
-        (r) => r.value.Email === actor.email.toLowerCase().trim(),
+        (r) => r.value.AuthUserID === actor.authUserId,
       );
       return found ? ownMember(tables, actor) : null;
     }
@@ -78,12 +83,14 @@ export class MemberService {
         ?.value ?? null
     );
   }
-  async createMember(actor: Identity, input: unknown) {
-    return this.writer.execute(
-      "createMember",
-      actor,
-      newMemberInput.parse(input),
-    );
+  async activateMember(actor: Identity) {
+    if (!actor.firstName)
+      throw new DataError(
+        "PROFILE_INCOMPLETE",
+        "Vul eerst je voornaam in bij je account.",
+        409,
+      );
+    return this.writer.execute("activateMember", actor, {});
   }
   async getVisitsForMember(actor: Identity) {
     const tables = await this.store.read(["Members", "Bezoeken"]);

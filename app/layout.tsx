@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
 import { AppProvider } from "@/components/app-provider";
 import "./globals.css";
 export const metadata: Metadata = {
@@ -22,19 +23,21 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="nl">
-      <body>
-        <AppProvider
-          mode={
-            process.env.PARKBAD_DATA_MODE &&
-            process.env.PARKBAD_DATA_MODE !== "demo"
-              ? "sheets"
-              : "demo"
-          }
-        >
-          {children}
-        </AppProvider>
-      </body>
-    </html>
+    <ClerkProvider signInUrl="/login" signUpUrl="/register">
+      <html lang="nl">
+        <body>
+          <AppProvider
+            mode={
+              process.env.PARKBAD_DATA_MODE &&
+              process.env.PARKBAD_DATA_MODE !== "demo"
+                ? "sheets"
+                : "demo"
+            }
+          >
+            {children}
+          </AppProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

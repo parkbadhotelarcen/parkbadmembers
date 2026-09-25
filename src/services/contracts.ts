@@ -1,11 +1,14 @@
 import type { Records } from "@/lib/google-sheets/schema";
 export interface Identity {
+  authUserId: string;
   email: string;
+  firstName: string;
+  lastName: string;
   isAdmin: boolean;
 }
 export interface WriteOperations {
-  createMember: {
-    input: { firstName: string; lastName: string };
+  activateMember: {
+    input: Record<string, never>;
     output: Records["Members"];
   };
   createVisit: {

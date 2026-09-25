@@ -26,7 +26,7 @@ import {
   X,
 } from "lucide-react";
 import { brand } from "@/lib/mock-data";
-import { signOut } from "next-auth/react";
+import { useClerk } from "@clerk/nextjs";
 import { formatDate, validateVisit } from "@/lib/loyalty";
 import { useMembers } from "./app-provider";
 import { BottomNavigation } from "./navigation";
@@ -551,6 +551,7 @@ function Logout() {
   const dialog = useRef<HTMLDialogElement>(null);
   const { reset, mode } = useMembers();
   const router = useRouter();
+  const clerk = useClerk();
   return (
     <>
       <button className="logout" onClick={() => dialog.current?.showModal()}>
@@ -570,13 +571,13 @@ function Logout() {
         <p>
           {mode === "demo"
             ? "Je toegevoegde demobezoeken worden gewist."
-            : "Je kunt later opnieuw inloggen met Google. Je gegevens blijven bewaard."}
+            : "Je kunt later opnieuw inloggen. Je gegevens blijven bewaard."}
         </p>
         <button
           className="primary"
           onClick={() => {
             if (mode === "sheets") {
-              void signOut({ callbackUrl: "/" });
+              void clerk.signOut({ redirectUrl: "/login" });
               return;
             }
             reset();

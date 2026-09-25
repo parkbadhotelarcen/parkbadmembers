@@ -4,7 +4,7 @@
  * Script properties: SPREADSHEET_ID, WRITE_SECRET (>=32 random characters).
  */
 var PB_HEADERS = {
-  Members: ['MemberID','Voornaam','Achternaam','Email','LidSinds','Niveau','Status','CreatedAt','UpdatedAt'],
+  Members: ['MemberID','AuthUserID','Voornaam','Achternaam','Email','LidSinds','Niveau','Status','CreatedAt','UpdatedAt'],
   Bezoeken: ['VisitID','MemberID','Boekingsnummer','Aankomstdatum','Status','AangemeldOp','GoedgekeurdOp','GoedgekeurdDoor'],
   Beloningen: ['RewardID','Naam','Omschrijving','Actief'],
   MemberBeloningen: ['UserRewardID','MemberID','RewardID','VerdiendOp','GebruiktOp','Status'],
@@ -29,6 +29,7 @@ function pbVerify(envelope, secret, now) {
   if (typeof command.issuedAt !== 'number' || !isFinite(command.issuedAt) || Math.abs(now-command.issuedAt)>300000) pbFail('FORBIDDEN');
   if (!command.actor || typeof command.actor.isAdmin !== 'boolean') pbFail('FORBIDDEN');
   command.actor.email=pbEmail(command.actor.email);
+  command.actor.authUserId=pbText(command.actor.authUserId,1,100);
   return command;
 }
 function doPost(event) {
@@ -79,27 +80,37 @@ function pbRequests(changes,ids) {
 function pbClean(record) { var copy={};Object.keys(record).forEach(function(k){if(k!=='_row')copy[k]=record[k];});return copy; }
 function pbSetting(db,key) { var found=db.Instellingen.find(function(r){return r.Key===key;}); return found ? found.Value : null; }
 function pbSet(db,key,value) { var found=db.Instellingen.find(function(r){return r.Key===key;}); return {table:'Instellingen',row:found && found._row,data:{Key:key,Value:String(value)}}; }
-function pbOwn(db,email) {
-  var matches=db.Members.filter(function(m){return m.Email.trim().toLowerCase()===email;});
+function pbOwn(db,actor) {
+  var matches=db.Members.filter(function(m){return m.AuthUserID===actor.authUserId;});
   if(matches.length>1)pbFail('SCHEMA'); if(!matches.length)pbFail('MEMBER_MISSING');
   if(matches[0].Status!=='ACTIVE')pbFail('FORBIDDEN');return matches[0];
 }
 function pbPlan(command,db,now) {
   var actor=command.actor, input=command.input || {}, stamp=now.toISOString(), today=Utilities.formatDate(now,'Europe/Amsterdam','yyyy-MM-dd');
   var data, changes=[], member, existing;
-  if(command.operation==='createMember') {
-    var firstName=pbText(input.firstName,1,100),lastName=pbText(input.lastName,0,100);
+  if(command.operation==='activateMember') {
+    var firstName=pbText(actor.firstName,1,100),lastName=pbText(actor.lastName || '',0,100);
+    existing=db.Members.filter(function(m){return m.AuthUserID===actor.authUserId;});
+    if(existing.length>1)pbFail('SCHEMA');
+    if(existing.length) return {data:pbClean(existing[0]),changes:[]};
     existing=db.Members.filter(function(m){return m.Email.trim().toLowerCase()===actor.email;});
     if(existing.length>1)pbFail('SCHEMA');
-    if(existing.length) { if(existing[0].Status!=='ACTIVE')pbFail('FORBIDDEN');return {data:pbClean(existing[0]),changes:[]}; }
+    if(existing.length) {
+      if(existing[0].AuthUserID && existing[0].AuthUserID!==actor.authUserId)pbFail('CONFLICT');
+      data=pbClean(existing[0]);data.AuthUserID=actor.authUserId;data.UpdatedAt=stamp;
+      if(!data.Voornaam)data.Voornaam=firstName;if(!data.Achternaam)data.Achternaam=lastName;
+      if(data.Status==='PENDING')data.Status='ACTIVE';
+      changes=[{table:'Members',row:existing[0]._row,data:data}];
+      return {data:data,changes:changes};
+    }
     var counter=Number(pbSetting(db,'lastMemberSequence')||'0');
     if(!Number.isSafeInteger(counter)||counter<0)pbFail('SCHEMA');
     db.Members.forEach(function(m){if(!/^KV-\d{3,}$/.test(m.MemberID))pbFail('SCHEMA');counter=Math.max(counter,Number(m.MemberID.slice(3)));});
     if(!Number.isSafeInteger(counter+1))pbFail('SCHEMA');
-    data={MemberID:'KV-'+String(counter+1).padStart(3,'0'),Voornaam:firstName,Achternaam:lastName,Email:actor.email,LidSinds:today,Niveau:'MEMBER',Status:'ACTIVE',CreatedAt:stamp,UpdatedAt:stamp};
+    data={MemberID:'KV-'+String(counter+1).padStart(3,'0'),AuthUserID:actor.authUserId,Voornaam:firstName,Achternaam:lastName,Email:actor.email,LidSinds:today,Niveau:'MEMBER',Status:'ACTIVE',CreatedAt:stamp,UpdatedAt:stamp};
     changes=[{table:'Members',data:data},pbSet(db,'lastMemberSequence',counter+1)];
   } else if(command.operation==='createVisit') {
-    member=pbOwn(db,actor.email);
+    member=pbOwn(db,actor);
     var booking=pbText(input.bookingNumber,4,30).toUpperCase();if(!/^[A-Z0-9-]+$/.test(booking))pbFail('INVALID_INPUT');
     var arrival=pbDate(input.arrivalDate),visitId=pbUuid(input.requestId);
     existing=db.Bezoeken.find(function(v){return v.VisitID===visitId;});

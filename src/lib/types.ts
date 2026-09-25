@@ -8,7 +8,7 @@ export interface Member {
   memberSince: string;
   memberLevel: "MEMBER" | "SILVER" | "GOLD";
   role: "USER" | "ADMIN";
-  status: "ACTIVE" | "BLOCKED";
+  status: "PENDING" | "ACTIVE" | "BLOCKED";
 }
 export interface Visit {
   id: string;

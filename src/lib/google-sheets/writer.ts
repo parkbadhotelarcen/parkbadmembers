@@ -82,7 +82,7 @@ export class AppsScriptWriter implements WriteGateway {
       throw new DataError(result?.code ?? "WRITER_ERROR", message, status);
     }
     const schema =
-      operation === "createMember"
+      operation === "activateMember"
         ? schemas.Members
         : operation === "assignReward"
           ? schemas.MemberBeloningen

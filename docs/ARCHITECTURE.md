@@ -1,9 +1,10 @@
 # Data- en API-contracten
 
-Browser → Next.js API → geverifieerde Google-sessie → MemberService.
+Browser → Next.js API → geverifieerde Clerk-sessie → MemberService.
 Lezen: GoogleSheetsStore → officiële Sheets API (readonly serviceaccount).
 Schrijven: AppsScriptWriter → HMAC-webhook → LockService → officiële Sheets API batchUpdate.
-Sheets is de enige datastore; OAuth gebruikt een versleutelde sessiecookie.
+Sheets blijft de loyalty-datastore; Clerk beheert credentials, verificatie en sessies.
+Zie [CLERK-AUTH.md](CLERK-AUTH.md) voor activatie en migratie.
 
 ## Grenzen
 

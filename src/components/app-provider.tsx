@@ -6,7 +6,8 @@ import {
   useEffect,
   useState,
 } from "react";
-import { signIn, signOut } from "next-auth/react";
+import { useClerk } from "@clerk/nextjs";
+import Link from "next/link";
 import {
   initialVisits,
   member,
@@ -61,10 +62,21 @@ export function AppProvider({
     mode === "demo" ? demo : null,
   );
   const [issue, setIssue] = useState({ code: "", message: "" });
-  const [busy, setBusy] = useState(false);
+  const clerk = useClerk();
   const load = useCallback(async () => {
     try {
-      const next: PortalData = await api("/api/member");
+      let next: PortalData;
+      try {
+        next = await api("/api/member");
+      } catch (error) {
+        if ((error as { code?: string }).code !== "MEMBER_MISSING") throw error;
+        await api("/api/members", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        });
+        next = await api("/api/member");
+      }
       setData(next);
       setIssue({ code: "", message: "" });
     } catch (e) {
@@ -104,60 +116,9 @@ export function AppProvider({
             </h1>
             <p role="status">{issue.message || "Je membership laden…"}</p>
             {issue.code === "UNAUTHORIZED" && (
-              <button
-                className="primary"
-                onClick={() => void signIn("google", { callbackUrl: "/" })}
-              >
-                Inloggen met Google
-              </button>
-            )}
-            {issue.code === "MEMBER_MISSING" && (
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  if (busy) return;
-                  const form = new FormData(e.currentTarget);
-                  setBusy(true);
-                  try {
-                    await api("/api/members", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        firstName: form.get("firstName"),
-                        lastName: form.get("lastName"),
-                      }),
-                    });
-                    await load();
-                  } catch (e) {
-                    setIssue({
-                      code: "MEMBER_MISSING",
-                      message:
-                        e instanceof Error ? e.message : "Aanmelden mislukt.",
-                    });
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                <label htmlFor="firstName">Voornaam</label>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  required
-                  maxLength={100}
-                  autoComplete="given-name"
-                />
-                <label htmlFor="lastName">Achternaam</label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  maxLength={100}
-                  autoComplete="family-name"
-                />
-                <button className="primary" disabled={busy}>
-                  {busy ? "Aanmelden…" : "Membership aanmaken"}
-                </button>
-              </form>
+              <Link className="primary" href="/login">
+                Inloggen
+              </Link>
             )}
             {issue.code && issue.code !== "UNAUTHORIZED" && (
               <button className="secondary" onClick={() => void load()}>
@@ -167,7 +128,7 @@ export function AppProvider({
             {issue.code && issue.code !== "UNAUTHORIZED" && (
               <button
                 className="text-button"
-                onClick={() => void signOut({ callbackUrl: "/" })}
+                onClick={() => void clerk.signOut({ redirectUrl: "/login" })}
               >
                 Uitloggen
               </button>
