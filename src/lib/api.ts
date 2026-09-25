@@ -18,6 +18,20 @@ export async function endpoint(run: () => Promise<unknown>) {
       );
     if (error instanceof DataError)
       return json({ code: error.code, message: error.message }, error.status);
+    if (error instanceof Error) {
+      const schemaFailure = error.message.match(
+        /^(Ongeldige kolomkoppen|Ongeldige gegevens) in ([A-Za-z]+)(?:, rij (\d+))?$/,
+      );
+      if (schemaFailure) {
+        const [, reason, table, row] = schemaFailure;
+        const location = row ? `, rij ${row}` : "";
+        const message =
+          reason === "Ongeldige kolomkoppen"
+            ? `Controleer de kolomkoppen van ${table}.`
+            : `Controleer de gegevens in ${table}${location}.`;
+        return json({ code: "SHEET_SCHEMA_INVALID", message }, 503);
+      }
+    }
     return json(
       {
         code: "UNAVAILABLE",
