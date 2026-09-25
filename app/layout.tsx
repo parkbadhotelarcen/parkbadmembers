@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { nlNL } from "@clerk/localizations";
 import { AppProvider } from "@/components/app-provider";
 import "./globals.css";
 export const metadata: Metadata = {
@@ -23,7 +24,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <ClerkProvider signInUrl="/login" signUpUrl="/register">
+    <ClerkProvider
+      signInUrl="/login"
+      signUpUrl="/register"
+      localization={nlNL}
+    >
       <html lang="nl">
         <body>
           <AppProvider
