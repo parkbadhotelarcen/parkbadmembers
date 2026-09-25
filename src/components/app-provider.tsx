@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useClerk } from "@clerk/nextjs";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   initialVisits,
   member,
@@ -63,6 +64,12 @@ export function AppProvider({
   );
   const [issue, setIssue] = useState({ code: "", message: "" });
   const clerk = useClerk();
+  const pathname = usePathname();
+  const isAuthRoute =
+    pathname === "/login" ||
+    pathname.startsWith("/login/") ||
+    pathname === "/register" ||
+    pathname.startsWith("/register/");
   const load = useCallback(async () => {
     try {
       let next: PortalData;
@@ -89,7 +96,7 @@ export function AppProvider({
     }
   }, []);
   useEffect(() => {
-    if (mode !== "sheets") return;
+    if (mode !== "sheets" || isAuthRoute) return;
     // load only updates state after the external API request settles.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
@@ -98,7 +105,8 @@ export function AppProvider({
     };
     window.addEventListener("focus", refresh);
     return () => window.removeEventListener("focus", refresh);
-  }, [mode, load]);
+  }, [mode, load, isAuthRoute]);
+  if (isAuthRoute) return children;
   if (!data)
     return (
       <div className="app-shell">
