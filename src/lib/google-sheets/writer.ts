@@ -77,8 +77,18 @@ export class AppsScriptGateway implements WriteGateway, SheetStore {
         MEMBER_MISSING: [404, "Er is nog geen membership voor je account."],
         INVALID_INPUT: [400, "Controleer de ingevulde gegevens."],
         SCHEMA: [503, "De datastructuur moet worden gecontroleerd."],
+        SCHEMA_AUTHUSERID: [503, "AuthUserID komt meer dan eenmaal voor."],
+        SCHEMA_EMAIL: [503, "Het geverifieerde e-mailadres komt meer dan eenmaal voor."],
+        SCHEMA_MEMBER_ID: [503, "Een MemberID heeft niet het verwachte KV-formaat."],
+        SCHEMA_MEMBER_SEQUENCE: [503, "De MemberID-teller is ongeldig."],
+        SCHEMA_REWARD_SETTINGS: [503, "De beloningsinstellingen zijn ongeldig."],
         BUSY: [503, "Het is even druk. Probeer dezelfde aanvraag opnieuw."],
       };
+      const schemaCode = String(result?.code ?? "");
+      if (schemaCode.startsWith("SCHEMA_HEADERS_"))
+        throw new DataError(schemaCode, `De headers van ${schemaCode.slice(15)} wijken af.`, 503);
+      if (schemaCode.startsWith("SCHEMA_PRIMARY_"))
+        throw new DataError(schemaCode, `De primaire sleutel in ${schemaCode.slice(15)} ontbreekt of is dubbel.`, 503);
       const [status, message] = messages[result?.code] ?? [
         503,
         "De gegevens konden niet worden verwerkt.",

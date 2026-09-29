@@ -56,13 +56,13 @@ function pbRead(id) {
   names.forEach(function(name,index){
     var values=result.valueRanges[index].values || [];
     var headers=PB_HEADERS[name];
-    if (!values[0] || headers.some(function(h,i){return values[0][i]!==h;})) pbFail('SCHEMA');
+    if (!values[0] || headers.some(function(h,i){return String(values[0][i]===undefined?'':values[0][i]).replace(/^\uFEFF/,'').trim()!==h;})) pbFail('SCHEMA_HEADERS_'+name.toUpperCase());
     var seen={};
     db[name]=[];
     values.slice(1).forEach(function(row,i){
       if (row.every(function(v){return v==='' || v===null;})) return;
       var record={_row:i+2}; headers.forEach(function(h,j){record[h]=String(row[j]===undefined?'':row[j]);});
-      if (!record[headers[0]] || seen[record[headers[0]]]) pbFail('SCHEMA');
+      if (!record[headers[0]] || seen[record[headers[0]]]) pbFail('SCHEMA_PRIMARY_'+name.toUpperCase());
       seen[record[headers[0]]]=true; db[name].push(record);
     });
   });
@@ -82,7 +82,7 @@ function pbSetting(db,key) { var found=db.Instellingen.find(function(r){return r
 function pbSet(db,key,value) { var found=db.Instellingen.find(function(r){return r.Key===key;}); return {table:'Instellingen',row:found && found._row,data:{Key:key,Value:String(value)}}; }
 function pbOwn(db,actor) {
   var matches=db.Members.filter(function(m){return m.AuthUserID===actor.authUserId;});
-  if(matches.length>1)pbFail('SCHEMA'); if(!matches.length)pbFail('MEMBER_MISSING');
+  if(matches.length>1)pbFail('SCHEMA_AUTHUSERID'); if(!matches.length)pbFail('MEMBER_MISSING');
   if(matches[0].Status!=='ACTIVE')pbFail('FORBIDDEN');return matches[0];
 }
 function pbPlan(command,db,now) {
@@ -104,10 +104,10 @@ function pbPlan(command,db,now) {
   } else if(command.operation==='activateMember') {
     var firstName=pbText(actor.firstName,1,100),lastName=pbText(actor.lastName || '',0,100);
     existing=db.Members.filter(function(m){return m.AuthUserID===actor.authUserId;});
-    if(existing.length>1)pbFail('SCHEMA');
+    if(existing.length>1)pbFail('SCHEMA_AUTHUSERID');
     if(existing.length) return {data:pbClean(existing[0]),changes:[]};
     existing=db.Members.filter(function(m){return m.Email.trim().toLowerCase()===actor.email;});
-    if(existing.length>1)pbFail('SCHEMA');
+    if(existing.length>1)pbFail('SCHEMA_EMAIL');
     if(existing.length) {
       if(existing[0].AuthUserID && existing[0].AuthUserID!==actor.authUserId)pbFail('CONFLICT');
       data=pbClean(existing[0]);data.AuthUserID=actor.authUserId;data.UpdatedAt=stamp;
@@ -117,9 +117,9 @@ function pbPlan(command,db,now) {
       return {data:data,changes:changes};
     }
     var counter=Number(pbSetting(db,'lastMemberSequence')||'0');
-    if(!Number.isSafeInteger(counter)||counter<0)pbFail('SCHEMA');
-    db.Members.forEach(function(m){if(!/^KV-\d{3,}$/.test(m.MemberID))pbFail('SCHEMA');counter=Math.max(counter,Number(m.MemberID.slice(3)));});
-    if(!Number.isSafeInteger(counter+1))pbFail('SCHEMA');
+    if(!Number.isSafeInteger(counter)||counter<0)pbFail('SCHEMA_MEMBER_SEQUENCE');
+    db.Members.forEach(function(m){if(!/^KV-\d{3,}$/.test(m.MemberID))pbFail('SCHEMA_MEMBER_ID');counter=Math.max(counter,Number(m.MemberID.slice(3)));});
+    if(!Number.isSafeInteger(counter+1))pbFail('SCHEMA_MEMBER_SEQUENCE');
     data={MemberID:'KV-'+String(counter+1).padStart(3,'0'),AuthUserID:actor.authUserId,Voornaam:firstName,Achternaam:lastName,Email:actor.email,LidSinds:today,Niveau:'MEMBER',Status:'ACTIVE',CreatedAt:stamp,UpdatedAt:stamp};
     changes=[{table:'Members',data:data},pbSet(db,'lastMemberSequence',counter+1)];
   } else if(command.operation==='createVisit') {
@@ -150,7 +150,7 @@ function pbPlan(command,db,now) {
     var reward=db.Beloningen.find(function(r){return r.RewardID===input.rewardId && pbBool(r.Actief);});if(!reward)pbFail('INVALID_INPUT');
     var required=Number(pbSetting(db,'visitsRequiredForReward'));
     var consumed=Number(pbSetting(db,'rewardVisitsConsumed.'+member.MemberID)||'0');
-    if(!Number.isInteger(required)||required<1||required>100||!Number.isInteger(consumed)||consumed<0)pbFail('SCHEMA');
+    if(!Number.isInteger(required)||required<1||required>100||!Number.isInteger(consumed)||consumed<0)pbFail('SCHEMA_REWARD_SETTINGS');
     var valid=db.Bezoeken.filter(function(v){return v.MemberID===member.MemberID && (v.Status==='APPROVED'||v.Status==='COMPLETED');}).length;
     if(valid-consumed<required)pbFail('INELIGIBLE');
     data={UserRewardID:userRewardId,MemberID:member.MemberID,RewardID:reward.RewardID,VerdiendOp:stamp,GebruiktOp:'',Status:'AVAILABLE'};

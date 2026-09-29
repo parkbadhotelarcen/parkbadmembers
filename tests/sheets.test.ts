@@ -267,6 +267,21 @@ test("read requests reject unknown, duplicate and caller-selected tables", () =>
     "INVALID_INPUT",
   );
 });
+test("Apps Script reports the exact table for safe schema diagnostics", () => {
+  const header = harness();
+  header.rows.Bezoeken[0][0] = "UnexpectedVisitID";
+  assert.equal(
+    header.send(header.command("activateMember", {})).code,
+    "SCHEMA_HEADERS_BEZOEKEN",
+  );
+
+  const duplicate = harness();
+  duplicate.rows.Instellingen.push(["visitsRequiredForReward", "4"]);
+  assert.equal(
+    duplicate.send(duplicate.command("activateMember", {})).code,
+    "SCHEMA_PRIMARY_INSTELLINGEN",
+  );
+});
 test("booking uniqueness is global and normalized, retries cannot switch owners", () => {
   const h = harness();
   for (const email of ["one@example.com", "two@example.com"])
