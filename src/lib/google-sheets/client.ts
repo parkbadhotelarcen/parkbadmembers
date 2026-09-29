@@ -27,14 +27,25 @@ async function request<T>(
   body?: unknown,
 ): Promise<T> {
   const { id, auth } = connection();
-  const token = await auth.getAccessToken();
+  let token: string | null | undefined;
+  try {
+    token = (await auth.getAccessToken()).token;
+  } catch {
+    // Keep credential details out of responses and logs. This error normally
+    // means the service-account email and private key do not form a valid pair.
+    throw new DataError(
+      "GOOGLE_CREDENTIALS_INVALID",
+      "De Google-serviceaccountgegevens zijn ongeldig. Controleer de serviceaccountkey in Vercel.",
+      503,
+    );
+  }
   // Never log Google errors: those can contain request bodies and credentials.
   const response = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${id}${suffix}`,
     {
       method,
       headers: {
-        Authorization: `Bearer ${token.token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: body ? JSON.stringify(body) : undefined,
