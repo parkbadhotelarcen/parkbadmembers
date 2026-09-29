@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { generateKeyPairSync } from "node:crypto";
 import test from "node:test";
 import {
   googleCredentialFailure,
@@ -6,8 +7,10 @@ import {
   normalizeGooglePrivateKey,
 } from "../src/lib/google-sheets/credentials";
 
-const body = "REDACTED_TEST_MATERIAL";
-const pem = `-----BEGIN PRIVATE KEY-----\n${body}\n-----END PRIVATE KEY-----`;
+const pem = generateKeyPairSync("rsa", { modulusLength: 1024 })
+  .privateKey.export({ format: "pem", type: "pkcs8" })
+  .toString()
+  .trim();
 
 test("private key normalization supports real and escaped newlines", () => {
   assert.equal(normalizeGooglePrivateKey(pem), pem);
@@ -17,16 +20,31 @@ test("private key normalization supports real and escaped newlines", () => {
     pem,
   );
   assert.equal(
+    normalizeGooglePrivateKey(pem.replaceAll("\n", "\r\n")),
+    pem,
+  );
+  assert.equal(
     normalizeGooglePrivateKey(pem.replaceAll("\n", "\\r\\n")),
     pem,
   );
 });
 
+test("private key normalization restores PEM whitespace without changing data", () => {
+  assert.equal(normalizeGooglePrivateKey(pem.replaceAll("\n", " ")), pem);
+});
+
+test("private key normalization preserves empty and damaged values for rejection", () => {
+  assert.equal(normalizeGooglePrivateKey(undefined), "");
+  assert.equal(normalizeGooglePrivateKey(""), "");
+  assert.equal(normalizeGooglePrivateKey("damaged"), "damaged");
+  assert.equal(hasPrivateKeyEnvelope(normalizeGooglePrivateKey("damaged")), false);
+});
+
 test("private key envelope rejects partial or unrelated values", () => {
   assert.equal(hasPrivateKeyEnvelope(pem), true);
-  assert.equal(hasPrivateKeyEnvelope(body), false);
+  assert.equal(hasPrivateKeyEnvelope("REDACTED_TEST_MATERIAL"), false);
   assert.equal(
-    hasPrivateKeyEnvelope(`-----BEGIN PRIVATE KEY-----\n${body}`),
+    hasPrivateKeyEnvelope("-----BEGIN PRIVATE KEY-----\nPARTIAL"),
     false,
   );
 });

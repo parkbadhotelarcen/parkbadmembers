@@ -1,15 +1,25 @@
 export function normalizeGooglePrivateKey(raw: string | undefined) {
-  let value = raw?.trim() ?? "";
-  const quoted =
-    value.length >= 2 &&
-    ((value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'")));
-  if (quoted) value = value.slice(1, -1);
-  return value
+  let value = raw?.replace(/^\uFEFF/, "").trim() ?? "";
+  const quoted = value.match(/^(["'])([\s\S]*)\1$/);
+  if (quoted) value = quoted[2];
+
+  value = value
     .replace(/\\r\\n/g, "\n")
     .replace(/\\n/g, "\n")
     .replace(/\r\n/g, "\n")
     .trim();
+
+  const begin = "-----BEGIN PRIVATE KEY-----";
+  const end = "-----END PRIVATE KEY-----";
+  if (!value.startsWith(begin) || !value.endsWith(end)) return value;
+
+  // PEM whitespace is representational. Re-folding only whitespace makes the
+  // value robust when a dashboard turns line breaks into CRLF or spaces while
+  // preserving every base64 character exactly.
+  const body = value.slice(begin.length, -end.length).replace(/\s/g, "");
+  if (!body || !/^[A-Za-z0-9+/=]+$/.test(body)) return value;
+  const lines = body.match(/.{1,64}/g) ?? [];
+  return `${begin}\n${lines.join("\n")}\n${end}`;
 }
 
 export function hasPrivateKeyEnvelope(value: string) {
