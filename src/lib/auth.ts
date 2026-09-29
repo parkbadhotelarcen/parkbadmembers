@@ -18,7 +18,16 @@ export async function requireIdentity(): Promise<Identity> {
       503,
     );
 
-  const { userId } = await auth();
+  let userId: string | null;
+  try {
+    ({ userId } = await auth());
+  } catch {
+    throw new DataError(
+      "CLERK_SESSION_UNAVAILABLE",
+      "De inlogsessie kon niet veilig worden gecontroleerd. Probeer opnieuw in te loggen.",
+      503,
+    );
+  }
   if (!userId)
     throw new DataError(
       "UNAUTHORIZED",
@@ -26,7 +35,16 @@ export async function requireIdentity(): Promise<Identity> {
       401,
     );
 
-  const user = await currentUser();
+  let user: Awaited<ReturnType<typeof currentUser>>;
+  try {
+    user = await currentUser();
+  } catch {
+    throw new DataError(
+      "CLERK_USER_UNAVAILABLE",
+      "Het Clerk-account kon server-side niet worden geladen. Controleer de Clerk Production-configuratie.",
+      503,
+    );
+  }
   const primaryEmail = user?.primaryEmailAddress;
   const email = primaryEmail?.emailAddress.toLowerCase().trim();
   if (

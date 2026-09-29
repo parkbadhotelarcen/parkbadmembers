@@ -40,19 +40,28 @@ async function request<T>(
     );
   }
   // Never log Google errors: those can contain request bodies and credentials.
-  const response = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${id}${suffix}`,
-    {
-      method,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+  let response: Response;
+  try {
+    response = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${id}${suffix}`,
+      {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: body ? JSON.stringify(body) : undefined,
+        cache: "no-store",
+        signal: AbortSignal.timeout(20000),
       },
-      body: body ? JSON.stringify(body) : undefined,
-      cache: "no-store",
-      signal: AbortSignal.timeout(20000),
-    },
-  );
+    );
+  } catch {
+    throw new DataError(
+      "GOOGLE_API_UNAVAILABLE",
+      "De Google Sheets API kon niet worden bereikt. Probeer het later opnieuw.",
+      503,
+    );
+  }
   if (!response.ok) {
     const error = await response.json().catch(() => null);
     void error;
