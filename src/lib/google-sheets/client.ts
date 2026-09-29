@@ -2,16 +2,27 @@ import "server-only";
 import { JWT } from "google-auth-library";
 import { headers, parseTable, type Table, type Tables } from "./schema";
 import { DataError, type SheetStore } from "./store";
+import {
+  googleCredentialFailure,
+  hasPrivateKeyEnvelope,
+  normalizeGooglePrivateKey,
+} from "./credentials";
 
 let auth: JWT | undefined;
 function connection() {
   const id = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const key = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL?.trim();
+  const key = normalizeGooglePrivateKey(process.env.GOOGLE_PRIVATE_KEY);
   if (!id || !/^[\w-]+$/.test(id) || !email || !key)
     throw new DataError(
       "CONFIGURATION",
       "De gegevenskoppeling is nog niet ingesteld.",
+      503,
+    );
+  if (!hasPrivateKeyEnvelope(key))
+    throw new DataError(
+      "GOOGLE_PRIVATE_KEY_INVALID_FORMAT",
+      "De Google private key heeft geen geldig PEM-formaat. Gebruik het volledige private_key-veld uit het serviceaccount-JSON.",
       503,
     );
   auth ??= new JWT({
@@ -30,12 +41,15 @@ async function request<T>(
   let token: string | null | undefined;
   try {
     token = (await auth.getAccessToken()).token;
-  } catch {
+  } catch (error) {
     // Keep credential details out of responses and logs. This error normally
     // means the service-account email and private key do not form a valid pair.
+    const failure = googleCredentialFailure(error);
     throw new DataError(
-      "GOOGLE_CREDENTIALS_INVALID",
-      "De Google-serviceaccountgegevens zijn ongeldig. Controleer de serviceaccountkey in Vercel.",
+      failure,
+      failure === "GOOGLE_PRIVATE_KEY_INVALID_FORMAT"
+        ? "De Google private key heeft een ongeldig formaat. Gebruik het volledige private_key-veld uit het serviceaccount-JSON."
+        : "De Google private key en het serviceaccount-e-mailadres horen niet aantoonbaar bij hetzelfde serviceaccount.",
       503,
     );
   }
