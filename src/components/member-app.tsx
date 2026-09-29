@@ -742,11 +742,11 @@ function InfoScreen({ route }: { route: string }) {
     );
   if (mode === "sheets") {
     content.privacy.text =
-      "Je membership en bezoeken worden opgeslagen in de beveiligde administratie van Parkbad Members. Google verzorgt het inloggen. Je browser gebruikt een sessiecookie. Het volledige privacybeleid wordt voor de lancering toegevoegd.";
+      "Je membership en bezoeken worden opgeslagen in de beveiligde administratie van Parkbad Members. Clerk verzorgt de accountbeveiliging, e-mailverificatie en sessie. Het volledige privacybeleid wordt voor de lancering toegevoegd.";
     content.voorwaarden.text =
       "Alleen goedgekeurde en bezochte verblijven tellen mee. De receptie kent beloningen toe. De definitieve voorwaarden volgen voor de lancering.";
     content.instellingen.text =
-      "Je logt in met je Google-account. Neem voor wijzigingen in je membership contact op met de receptie.";
+      "Je logt in met je e-mailadres en wachtwoord. Neem voor wijzigingen in je membership contact op met de receptie.";
   }
   const c = content[route] ?? {
     title: "Voordeel niet beschikbaar",

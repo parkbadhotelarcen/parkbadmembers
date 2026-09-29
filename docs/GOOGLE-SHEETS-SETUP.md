@@ -54,14 +54,14 @@ Controleer **Settings → Build and Deployment → Root Directory**: de reposito
 
 ## 5. Controle na jouw configuratie
 
-1. Open productie: in Sheets-stand verschijnt Google-login, nooit het demo-account.
-2. Log in met een toegestaan Google-account met geverifieerd e-mailadres. Vul voornaam/achternaam in. Controleer één Members-rij met KV-001 of het eerstvolgende nummer.
+1. Open productie: in Sheets-stand verschijnt de Clerk-login, nooit het demo-account.
+2. Registreer met een geverifieerd e-mailadres en vul voornaam/achternaam in. Controleer één Members-rij met KV-001 of het eerstvolgende nummer.
 3. Herlaad/log opnieuw in: hetzelfde MemberID blijft behouden.
 4. Registreer een testbezoek met toekomstige datum. Controleer één PENDING-rij, zichtbaar bij Mijn boekingen, zonder extra beloningsvoortgang.
 5. Probeer hetzelfde boekingsnummer in andere lettergrootte en vanuit een tweede account. Er mag geen tweede rij ontstaan.
 6. Alleen de admin-allowlist mag via de admin-API goedkeuren en beloningen toekennen. Een admin-scherm en automatisch e-mailen zijn vervolgwerk. Zie [API-contracten](ARCHITECTURE.md).
 7. Controleer na goedkeuring/vernieuwing voortgang, beloningen, actieve voordelen en acties binnen hun datumbereik. Open ook alle acht hoofd-URL's rechtstreeks.
 
-Een configuratiefout toont een melding en opnieuw-ladenknop. Sheets-stand valt nooit terug op mockdata. Echte OAuth, Sheets-toegang en Apps Script moeten na deze handmatige stappen nog end-to-end worden geverifieerd.
+Een configuratiefout toont een melding en opnieuw-ladenknop. Sheets-stand valt nooit terug op mockdata. Clerk, Sheets-toegang en Apps Script moeten na deze handmatige stappen nog end-to-end worden geverifieerd.
 
 Referenties: [Sheets batchGet](https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/batchGet), [atomische batchUpdate](https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/batchUpdate) en [LockService](https://developers.google.com/apps-script/reference/lock/lock-service).

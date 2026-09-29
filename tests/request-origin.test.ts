@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  allowedMutationOrigins,
   hasValidMutationOrigin,
   PARKBAD_PRODUCTION_ORIGIN,
 } from "../src/lib/request-origin";
@@ -14,15 +15,24 @@ function request(origin: string | null, site = "same-origin") {
   });
 }
 
-test("accepts mutations only from the fixed production origin", () => {
+const deploymentEnv = {
+  VERCEL_PROJECT_PRODUCTION_URL: "parkbadmembers-nvgw-seven.vercel.app",
+  VERCEL_URL: "parkbadmembers-nvgw-8eropb2qv-parkhotelarcen.vercel.app",
+};
+
+test("accepts mutations from the canonical and active Vercel production origins", () => {
   assert.equal(hasValidMutationOrigin(request(PARKBAD_PRODUCTION_ORIGIN)), true);
+  for (const origin of allowedMutationOrigins(deploymentEnv)) {
+    assert.equal(hasValidMutationOrigin(request(origin), deploymentEnv), true);
+  }
 });
 
-test("rejects missing, preview, foreign and cross-site origins", () => {
+test("rejects missing, unknown, malformed and cross-site origins", () => {
   assert.equal(hasValidMutationOrigin(request(null)), false);
   assert.equal(
     hasValidMutationOrigin(
-      request("https://parkbadmembers-nvgw-seven.vercel.app"),
+      request("https://unknown-preview.vercel.app"),
+      deploymentEnv,
     ),
     false,
   );
@@ -33,5 +43,9 @@ test("rejects missing, preview, foreign and cross-site origins", () => {
   assert.equal(
     hasValidMutationOrigin(request(PARKBAD_PRODUCTION_ORIGIN, "cross-site")),
     false,
+  );
+  assert.deepEqual(
+    [...allowedMutationOrigins({ VERCEL_URL: "https://attacker.example/path" })],
+    [PARKBAD_PRODUCTION_ORIGIN],
   );
 });
