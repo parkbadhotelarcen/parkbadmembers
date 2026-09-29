@@ -1,6 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { DataError } from "./google-sheets/store";
+import { hasValidMutationOrigin } from "./request-origin";
 export function json(data: unknown, status = 200) {
   return Response.json(data, {
     status,
@@ -43,14 +44,7 @@ export async function endpoint(run: () => Promise<unknown>) {
   }
 }
 export async function input(request: Request): Promise<unknown> {
-  const origin = process.env.NEXTAUTH_URL
-    ? new URL(process.env.NEXTAUTH_URL).origin
-    : null;
-  if (
-    !origin ||
-    request.headers.get("origin") !== origin ||
-    request.headers.get("sec-fetch-site") === "cross-site"
-  )
+  if (!hasValidMutationOrigin(request))
     throw new DataError("FORBIDDEN", "Ongeldige herkomst.", 403);
   if (!request.headers.get("content-type")?.startsWith("application/json"))
     throw new DataError("INVALID_INPUT", "JSON verwacht.");
