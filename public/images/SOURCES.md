@@ -1,5 +1,7 @@
 # Illustrative photography
 
+`landal-logo-horizontal-teal.png` is the official Landal logo supplied by the project owner. Its file contents and proportions are preserved unchanged.
+
 These are generic hospitality photographs, not claimed to depict Parkhotel Bad Arcen. Replace with approved hotel imagery before launch.
 
 - pool.jpg: https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=1200&q=85&fit=crop

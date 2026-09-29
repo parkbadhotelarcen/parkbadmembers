@@ -21,6 +21,7 @@ export const clerkAppearance = {
     footerActionText: "clerk-footer-text",
     footerActionLink: "clerk-link",
     form: "clerk-form",
+    formField: "clerk-field",
     formFieldRow: "clerk-field-row",
     formButtonPrimary: "clerk-primary",
     socialButtonsBlockButton: "clerk-social",
@@ -33,5 +34,9 @@ export const clerkAppearance = {
     formFieldCheckboxInput: "clerk-checkbox",
     formFieldCheckboxLabel: "clerk-checkbox-label",
     formFieldCheckboxLabelButton: "clerk-link",
+    formFieldErrorText: "clerk-error",
+    formFieldSuccessText: "clerk-success",
+    alert: "clerk-alert",
+    identityPreview: "clerk-identity-preview",
   },
 };

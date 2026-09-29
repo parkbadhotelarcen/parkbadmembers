@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export function AuthShell({
@@ -21,6 +22,16 @@ export function AuthShell({
           <p>{description}</p>
         </div>
         {children}
+        <div className="auth-parent-brand" aria-label="Onderdeel van Landal">
+          <span>Onderdeel van</span>
+          <Image
+            src="/images/landal-logo-horizontal-teal.png"
+            alt="Landal Holiday Breaks in nature"
+            width={250}
+            height={118}
+            priority
+          />
+        </div>
       </section>
     </main>
   );
