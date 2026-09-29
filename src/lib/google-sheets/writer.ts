@@ -1,19 +1,22 @@
 import "server-only";
 import { createHmac, randomUUID } from "node:crypto";
 import { DataError } from "./store";
-import { schemas } from "./schema";
+import { schemas, type Table, type Tables } from "./schema";
+import type { SheetStore } from "./store";
 import type {
   Identity,
   WriteGateway,
   WriteOperations,
 } from "@/services/contracts";
 
-export class AppsScriptWriter implements WriteGateway {
-  async execute<K extends keyof WriteOperations>(
-    operation: K,
+type GatewayOperation = keyof WriteOperations | "readTables";
+
+export class AppsScriptGateway implements WriteGateway, SheetStore {
+  private async request(
+    operation: GatewayOperation,
     actor: Identity,
-    input: WriteOperations[K]["input"],
-  ): Promise<WriteOperations[K]["output"]> {
+    input: unknown,
+  ): Promise<unknown> {
     const endpoint = process.env.GOOGLE_APPS_SCRIPT_URL;
     const secret = process.env.GOOGLE_APPS_SCRIPT_SECRET;
     if (
@@ -25,8 +28,8 @@ export class AppsScriptWriter implements WriteGateway {
       secret.length < 32
     )
       throw new DataError(
-        "WRITER_NOT_CONFIGURED",
-        "Registreren is nog niet beschikbaar. Neem contact op met de receptie.",
+        "GATEWAY_NOT_CONFIGURED",
+        "De gegevenskoppeling is nog niet ingesteld.",
         503,
       );
     const payload = JSON.stringify({
@@ -50,15 +53,15 @@ export class AppsScriptWriter implements WriteGateway {
       });
     } catch {
       throw new DataError(
-        "WRITE_UNCERTAIN",
-        "De bevestiging ontbreekt. Probeer dezelfde boeking opnieuw; deze wordt niet dubbel aangemaakt.",
+        "GATEWAY_UNAVAILABLE",
+        "De gegevens zijn tijdelijk niet beschikbaar.",
         503,
       );
     }
     if (!response.ok)
       throw new DataError(
-        "WRITER_UNAVAILABLE",
-        "Registreren is tijdelijk niet beschikbaar.",
+        "GATEWAY_UNAVAILABLE",
+        "De gegevens zijn tijdelijk niet beschikbaar.",
         503,
       );
     const result = await response.json().catch(() => null);
@@ -73,21 +76,49 @@ export class AppsScriptWriter implements WriteGateway {
         FORBIDDEN: [403, "Je hebt geen toegang tot deze bewerking."],
         MEMBER_MISSING: [404, "Er is nog geen membership voor je account."],
         INVALID_INPUT: [400, "Controleer de ingevulde gegevens."],
+        SCHEMA: [503, "De datastructuur moet worden gecontroleerd."],
         BUSY: [503, "Het is even druk. Probeer dezelfde aanvraag opnieuw."],
       };
       const [status, message] = messages[result?.code] ?? [
         503,
-        "De gegevens konden niet worden opgeslagen.",
+        "De gegevens konden niet worden verwerkt.",
       ];
-      throw new DataError(result?.code ?? "WRITER_ERROR", message, status);
+      throw new DataError(result?.code ?? "GATEWAY_ERROR", message, status);
     }
+    return result.data;
+  }
+
+  async read(tables: Table[], actor: Identity): Promise<Partial<Tables>> {
+    const data = await this.request("readTables", actor, { tables });
+    if (!data || typeof data !== "object" || Array.isArray(data))
+      throw new DataError("GATEWAY_RESPONSE", "De gegevens konden niet worden gelezen.", 503);
+    const source = data as Record<string, unknown>;
+    const parsed: Partial<Tables> = {};
+    for (const table of tables) {
+      const rows = source[table];
+      if (!Array.isArray(rows))
+        throw new DataError("GATEWAY_RESPONSE", "De gegevens konden niet worden gelezen.", 503);
+      const values = rows.map((row) => schemas[table].parse(row));
+      Object.assign(parsed, {
+        [table]: values.map((value, index) => ({ row: index + 2, value })),
+      });
+    }
+    return parsed;
+  }
+
+  async execute<K extends keyof WriteOperations>(
+    operation: K,
+    actor: Identity,
+    input: WriteOperations[K]["input"],
+  ): Promise<WriteOperations[K]["output"]> {
+    const data = await this.request(operation, actor, input);
     const schema =
       operation === "activateMember"
         ? schemas.Members
         : operation === "assignReward"
           ? schemas.MemberBeloningen
           : schemas.Bezoeken;
-    const parsed = schema.safeParse(result.data);
+    const parsed = schema.safeParse(data);
     if (!parsed.success)
       throw new DataError(
         "WRITER_RESPONSE",

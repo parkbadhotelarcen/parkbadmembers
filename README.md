@@ -1,6 +1,6 @@
 # Parkbad Members
 
-Mobile-first Next.js App Router + TypeScript + Tailwind CSS application for Vercel, with Lucide icons and qrcode.react. Includes a server-only Google Sheets integration, Google login and an Apps Script LockService write gateway. The default remains **demo** until you complete the [manual Google/Vercel setup](docs/GOOGLE-SHEETS-SETUP.md).
+Mobile-first Next.js App Router + TypeScript + Tailwind CSS application for Vercel, with Lucide icons and qrcode.react. Clerk handles authentication; a signed server-only Apps Script gateway handles all Google Sheets reads and writes. The default remains **demo** until you complete the [manual Google/Vercel setup](docs/GOOGLE-SHEETS-SETUP.md).
 
 ## Development
 
@@ -14,7 +14,7 @@ Node.js 22 LTS recommended. Run `npm ci`, `npm run dev`. Validation: `npm run li
 - `src/lib/mock-data.ts`: fictitious member, visits, configurable benefit content and brand asset location.
 - `src/lib/loyalty.ts`: configurable reward progress and visit validation.
 - `src/services/` and `src/lib/google-sheets/`: typed service layer, server-only adapters, validation and API mapping.
-- `google-apps-script/`: signed, serialized write gateway and seven-tab initializer.
+- `google-apps-script/`: signed read/write gateway with member isolation, serialized mutations and the existing seven-tab initializer.
 - `docs/`: [Google setup](docs/GOOGLE-SHEETS-SETUP.md) and [API/architecture](docs/ARCHITECTURE.md).
 - `tests`: authorization, allocation/idempotency, reward eligibility, schema and booking validation.
 - `public/images`: illustrative photography (not verified photographs of the hotel).

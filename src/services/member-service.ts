@@ -60,7 +60,7 @@ export class MemberService {
     private writer: WriteGateway,
   ) {}
   private async own(actor: Identity) {
-    return ownMember(await this.store.read(["Members"]), actor);
+    return ownMember(await this.store.read(["Members"], actor), actor);
   }
   async getMember(actor: Identity) {
     return this.own(actor);
@@ -71,7 +71,7 @@ export class MemberService {
       email.toLowerCase().trim() !== actor.email.toLowerCase().trim()
     )
       throw new DataError("FORBIDDEN", "Geen toegang.", 403);
-    const tables = await this.store.read(["Members"]);
+    const tables = await this.store.read(["Members"], actor);
     if (!actor.isAdmin) {
       const found = tables.Members?.some(
         (r) => r.value.AuthUserID === actor.authUserId,
@@ -93,7 +93,7 @@ export class MemberService {
     return this.writer.execute("activateMember", actor, {});
   }
   async getVisitsForMember(actor: Identity) {
-    const tables = await this.store.read(["Members", "Bezoeken"]);
+    const tables = await this.store.read(["Members", "Bezoeken"], actor);
     const member = ownMember(tables, actor);
     return (
       tables.Bezoeken?.filter((r) => r.value.MemberID === member.MemberID).map(
@@ -144,7 +144,7 @@ export class MemberService {
       "Members",
       "MemberBeloningen",
       "Beloningen",
-    ]);
+    ], actor);
     const member = ownMember(tables, actor);
     return (tables.MemberBeloningen ?? [])
       .filter((r) => r.value.MemberID === member.MemberID)
@@ -158,7 +158,7 @@ export class MemberService {
   async getBenefits(actor: Identity) {
     await this.own(actor);
     return (
-      (await this.store.read(["Voordelen"])).Voordelen?.filter(
+      (await this.store.read(["Voordelen"], actor)).Voordelen?.filter(
         (r) => r.value.Actief,
       ).map((r) => r.value) ?? []
     );
@@ -169,7 +169,7 @@ export class MemberService {
       timeZone: "Europe/Amsterdam",
     }).format(new Date());
     return (
-      (await this.store.read(["Acties"])).Acties?.filter(
+      (await this.store.read(["Acties"], actor)).Acties?.filter(
         (r) =>
           r.value.Actief &&
           r.value.StartDatum <= today &&
@@ -180,7 +180,7 @@ export class MemberService {
   async getSetting(actor: Identity, key: string) {
     await this.own(actor);
     return (
-      (await this.store.read(["Instellingen"])).Instellingen?.find(
+      (await this.store.read(["Instellingen"], actor)).Instellingen?.find(
         (r) => r.value.Key === key,
       )?.value.Value ?? null
     );
@@ -195,7 +195,7 @@ export class MemberService {
       "Voordelen",
       "Acties",
       "Instellingen",
-    ] satisfies Table[]);
+    ] satisfies Table[], actor);
     const member = ownMember(tables, actor);
     const settings = settingsFrom(tables);
     const consumed = Number(

@@ -210,6 +210,63 @@ test("a verified account claims an existing member without creating a second Mem
   assert.equal(result.data.AuthUserID, "user_existing@example.com");
   assert.equal(h.rows.Members.length, 2);
 });
+test("signed reads return only the authenticated member data", () => {
+  const h = harness();
+  h.send(h.command("activateMember", {}, "one@example.com"));
+  h.send(h.command("activateMember", {}, "two@example.com"));
+  const first = h.send(
+    h.command("createVisit", {
+      bookingNumber: "FIRST-BOOKING",
+      arrivalDate: "2099-01-01",
+      requestId: randomUUID(),
+    }),
+  );
+  h.send(
+    h.command(
+      "createVisit",
+      {
+        bookingNumber: "SECOND-BOOKING",
+        arrivalDate: "2099-01-01",
+        requestId: randomUUID(),
+      },
+      "two@example.com",
+    ),
+  );
+  h.rows.Instellingen.push(["rewardVisitsConsumed.KV-001", "1"]);
+  h.rows.Instellingen.push(["rewardVisitsConsumed.KV-002", "9"]);
+
+  const result = h.send(
+    h.command("readTables", {
+      tables: ["Members", "Bezoeken", "Instellingen"],
+    }),
+  );
+  assert.equal(result.ok, true);
+  assert.deepEqual(
+    result.data.Members.map((member: { MemberID: string }) => member.MemberID),
+    ["KV-001"],
+  );
+  assert.deepEqual(
+    result.data.Bezoeken.map((visit: { VisitID: string }) => visit.VisitID),
+    [first.data.VisitID],
+  );
+  assert.deepEqual(
+    result.data.Instellingen.map((setting: { Key: string }) => setting.Key),
+    ["visitsRequiredForReward", "rewardVisitsConsumed.KV-001"],
+  );
+  assert.equal(h.stats().writes, 4);
+});
+test("read requests reject unknown, duplicate and caller-selected tables", () => {
+  const h = harness();
+  h.send(h.command("activateMember", {}));
+  assert.equal(
+    h.send(h.command("readTables", { tables: ["Members", "Secrets"] })).code,
+    "INVALID_INPUT",
+  );
+  assert.equal(
+    h.send(h.command("readTables", { tables: ["Members", "Members"] })).code,
+    "INVALID_INPUT",
+  );
+});
 test("booking uniqueness is global and normalized, retries cannot switch owners", () => {
   const h = harness();
   for (const email of ["one@example.com", "two@example.com"])

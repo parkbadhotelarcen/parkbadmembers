@@ -88,7 +88,20 @@ function pbOwn(db,actor) {
 function pbPlan(command,db,now) {
   var actor=command.actor, input=command.input || {}, stamp=now.toISOString(), today=Utilities.formatDate(now,'Europe/Amsterdam','yyyy-MM-dd');
   var data, changes=[], member, existing;
-  if(command.operation==='activateMember') {
+  if(command.operation==='readTables') {
+    if(!Array.isArray(input.tables)||!input.tables.length||input.tables.length>Object.keys(PB_HEADERS).length)pbFail('INVALID_INPUT');
+    var requested={},allowed=Object.keys(PB_HEADERS);
+    input.tables.forEach(function(table){if(typeof table!=='string'||allowed.indexOf(table)===-1||requested[table])pbFail('INVALID_INPUT');requested[table]=true;});
+    member=pbOwn(db,actor);data={};
+    input.tables.forEach(function(table){
+      var rows=db[table];
+      if(table==='Members')rows=rows.filter(function(row){return row.MemberID===member.MemberID;});
+      if(table==='Bezoeken'||table==='MemberBeloningen')rows=rows.filter(function(row){return row.MemberID===member.MemberID;});
+      if(table==='Instellingen')rows=rows.filter(function(row){return row.Key==='visitsRequiredForReward'||row.Key==='rewardVisitsConsumed.'+member.MemberID;});
+      data[table]=rows.map(pbClean);
+    });
+    return {data:data,changes:[]};
+  } else if(command.operation==='activateMember') {
     var firstName=pbText(actor.firstName,1,100),lastName=pbText(actor.lastName || '',0,100);
     existing=db.Members.filter(function(m){return m.AuthUserID===actor.authUserId;});
     if(existing.length>1)pbFail('SCHEMA');

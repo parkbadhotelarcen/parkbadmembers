@@ -1,8 +1,8 @@
 # Data- en API-contracten
 
 Browser → Next.js API → geverifieerde Clerk-sessie → MemberService.
-Lezen: GoogleSheetsStore → officiële Sheets API (readonly serviceaccount).
-Schrijven: AppsScriptWriter → HMAC-webhook → LockService → officiële Sheets API batchUpdate.
+Lezen en schrijven: AppsScriptGateway → HMAC-webhook → Apps Script → Google Sheets.
+Apps Script selecteert persoonlijke gegevens op de server-side Clerk `AuthUserID`; de browser kan geen MemberID kiezen. LockService serialiseert mutaties en unieke ID-generatie.
 Sheets blijft de loyalty-datastore; Clerk beheert credentials, verificatie en sessies.
 Zie [CLERK-AUTH.md](CLERK-AUTH.md) voor activatie en migratie.
 
@@ -10,8 +10,8 @@ Zie [CLERK-AUTH.md](CLERK-AUTH.md) voor activatie en migratie.
 
 - Het server-only composition root staat in src/services/index.ts. De pure MemberService kent SheetStore en WriteGateway; SQL kan deze adapters later vervangen.
 - De zeven tabellen, headers en types staan in src/lib/google-sheets/schema.ts. services/portal.ts vertaalt Google-records naar UI-types.
-- GET /api/member doet één batchread en filtert persoonlijke records server-side. Geen permanente PII-cache; responses zijn private,no-store. Het Google-token wordt kortlevend server-side hergebruikt.
-- Identiteit komt uit Google-login met email_verified=true. Geen client-MemberID, e-mailadres of rol bij persoonlijke mutaties. Adminrollen komen bij ieder request uit de server-allowlist.
+- GET /api/member doet één ondertekende batchread; Apps Script filtert persoonlijke records voordat ze Next.js bereiken. Geen permanente PII-cache; responses zijn private,no-store.
+- Identiteit komt uit een geverifieerde Clerk-sessie. Geen client-MemberID, e-mailadres of rol bij persoonlijke reads of mutaties. Adminrollen komen bij ieder request uit de server-allowlist.
 - Mutaties: JSON, maximaal 8 KiB, exacte Origin uit NEXTAUTH_URL, strikte invoer. Sessies verlopen na acht uur. De gateway controleert HMAC en tijdvenster vóór datatoegang. Ondersteunde mutaties zijn idempotent: replay kan geen tweede member/bezoek/beloning maken.
 - De scriptlock omvat lezen, valideren en atomisch schrijven. Herhaal bij onzekere bevestiging dezelfde aanvraag met dezelfde Idempotency-Key. ScriptProperties bevatten alleen spreadsheet-ID en secret; zakelijke data en tellers staan in Sheets.
 - Locks gelden niet voor handmatige editors of andere scriptprojecten. Laat transactionele tabbladen uitsluitend via deze gateway schrijven. Bescherm headers, identiteitkolommen en technische tellers tegen handmatige edits.

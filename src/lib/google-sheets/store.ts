@@ -1,6 +1,7 @@
 import type { Table, Tables } from "./schema";
+import type { Identity } from "@/services/contracts";
 export interface SheetStore {
-  read(tables: Table[]): Promise<Partial<Tables>>;
+  read(tables: Table[], actor: Identity): Promise<Partial<Tables>>;
 }
 export class DataError extends Error {
   constructor(
