@@ -457,7 +457,7 @@ function Benefits() {
         subtitle="Een beetje extra, speciaal voor jou"
       />
       <p className="intro">
-        Als Parkbad Member profiteer je van exclusieve voordelen tijdens je
+        Als Parkhotel Bad Arcen Member profiteer je van exclusieve voordelen tijdens je
         verblijf.
       </p>
       {benefits.length === 0 && (
@@ -718,7 +718,7 @@ function InfoScreen({ route }: { route: string }) {
     },
     voorwaarden: {
       title: "Voorwaarden",
-      text: "De definitieve voorwaarden van Parkbad Members worden voor de lancering toegevoegd. Deze demo kent geen echte beloningen toe en registreert geen hotelboekingen.",
+      text: "De definitieve voorwaarden van Parkhotel Bad Arcen Members worden voor de lancering toegevoegd. Deze demo kent geen echte beloningen toe en registreert geen hotelboekingen.",
     },
     privacy: {
       title: "Privacy",
@@ -758,7 +758,7 @@ function InfoScreen({ route }: { route: string }) {
     );
   if (mode === "sheets") {
     content.privacy.text =
-      "Je membership en bezoeken worden opgeslagen in de beveiligde administratie van Parkbad Members. Clerk verzorgt de accountbeveiliging, e-mailverificatie en sessie. Het volledige privacybeleid wordt voor de lancering toegevoegd.";
+      "Je membership en bezoeken worden opgeslagen in de beveiligde administratie van Parkhotel Bad Arcen Members. Clerk verzorgt de accountbeveiliging, e-mailverificatie en sessie. Het volledige privacybeleid wordt voor de lancering toegevoegd.";
     content.voorwaarden.text =
       "Alleen goedgekeurde en bezochte verblijven tellen mee. De receptie kent beloningen toe. De definitieve voorwaarden volgen voor de lancering.";
     content.instellingen.text =
@@ -810,7 +810,7 @@ export function MemberApp({ route }: { route: string }) {
         <p>
           Jouw verblijf. Jouw voordelen.
           <br />
-          Ontdek Parkbad Members.
+          Ontdek Parkhotel Bad Arcen Members.
         </p>
         <Link href="/" className="primary gold-button">
           {mode === "demo" ? "Open de demo" : "Mijn membership"}{" "}
@@ -827,7 +827,7 @@ export function MemberApp({ route }: { route: string }) {
         Ga naar inhoud
       </a>
       <div className="topbar">
-        <Link href="/" aria-label="Parkbad Members Home">
+        <Link href="/" aria-label="Parkhotel Bad Arcen Members Home">
           <Brand compact />
         </Link>
         <span className="topbar-note">JOUW VERBLIJF. JOUW VOORDELEN.</span>
@@ -854,7 +854,7 @@ export function MemberApp({ route }: { route: string }) {
         {screen}
       </main>
       <footer className="desktop-footer">
-        <span>PARKBAD MEMBERS</span>
+        <span>PARKHOTEL BAD ARCEN MEMBERS</span>
         <span>Meer dan een verblijf.</span>
       </footer>
       <BottomNavigation route={route} />

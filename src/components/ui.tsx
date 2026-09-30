@@ -21,12 +21,12 @@ export function Brand({ compact = false }: { compact?: boolean }) {
           src={brand.logoSrc}
           width={80}
           height={80}
-          alt="Parkbad"
+          alt="Parkhotel Bad Arcen"
           className="original-logo"
         />
       )}
       <span>
-        PARKBAD<small>MEMBERS</small>
+        PARKHOTEL BAD ARCEN<small>MEMBERS</small>
       </span>
     </div>
   );

@@ -38,12 +38,12 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .brand { color: #fff; gap: 8px; }
 .brand > span {
   font-family: inherit;
-  font-size: 24px;
+  font-size: 19px;
   font-weight: 760;
-  letter-spacing: 4.5px;
+  letter-spacing: 2.7px;
 }
 .brand small { color: #71d7ce; font-weight: 750; letter-spacing: 4.5px; }
-.brand.compact > span { font-size: 21px; }
+.brand.compact > span { font-size: 16px; letter-spacing: 2.3px; }
 .topbar-note { color: rgba(255,255,255,.62); font-weight: 700; }
 .desktop-member .avatar,
 .avatar {
@@ -249,7 +249,7 @@ input:focus { border-color: var(--aqua); box-shadow: 0 0 0 4px rgba(23,168,155,.
   background: var(--aqua);
 }
 .auth-brand { color: var(--deep); font-family: inherit; }
-.auth-brand span { font-weight: 780; letter-spacing: 5px; }
+.auth-brand span { font-size: clamp(20px, 6vw, 26px); font-weight: 780; letter-spacing: 2.8px; white-space: nowrap; }
 .auth-brand small { color: var(--aqua); font-weight: 800; }
 .auth-copy h1 { color: var(--deep); font-weight: 780; letter-spacing: -1.2px; }
 .auth-copy p { color: var(--muted); }
@@ -281,6 +281,7 @@ input:focus { border-color: var(--aqua); box-shadow: 0 0 0 4px rgba(23,168,155,.
   }
   .main-content { padding-top: 28px; }
   .home-heading h1 { font-size: 30px; letter-spacing: -1.2px; }
+  .brand.compact > span { font-size: 15px; letter-spacing: 2px; }
   .home-heading .avatar { background: var(--aqua-soft); border-color: transparent; }
   .home-cards { gap: 14px; }
   .card { border-radius: 21px; }
@@ -310,6 +311,7 @@ input:focus { border-color: var(--aqua); box-shadow: 0 0 0 4px rgba(23,168,155,.
   .auth-panel { border-radius: 23px; }
   .auth-panel::before { margin-top: -3px; margin-bottom: 18px; }
   .home-heading h1 { font-size: 27px; }
+  .auth-brand span { font-size: 18px; letter-spacing: 2px; }
   .bottom-nav small { font-size: 10px; }
 }
 

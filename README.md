@@ -1,4 +1,4 @@
-# Parkbad Members
+# Parkhotel Bad Arcen Members
 
 Mobile-first Next.js App Router + TypeScript + Tailwind CSS application for Vercel, with Lucide icons and qrcode.react. Clerk handles authentication; a signed server-only Apps Script gateway handles all Google Sheets reads and writes. The default remains **demo** until you complete the [manual Google/Vercel setup](docs/GOOGLE-SHEETS-SETUP.md).
 
@@ -33,7 +33,7 @@ No environment variables are needed in demo mode. Do not enter real guest data i
 
 ## Original logo
 
-Only a composite screen reference was supplied, not an original standalone logo. No logo was reconstructed. The UI therefore uses a typographic PARKBAD MEMBERS name and a temporary typographic app icon. Place the original asset under `public/brand/` and set `brand.logoSrc` in `src/lib/mock-data.ts`. The image component preserves aspect ratio using contain sizing. Replace the temporary app icon with approved assets before launch.
+Only a composite screen reference was supplied, not an original standalone logo. No logo was reconstructed. The UI therefore uses a typographic PARKHOTEL BAD ARCEN MEMBERS name and a temporary typographic app icon. Place the original asset under `public/brand/` and set `brand.logoSrc` in `src/lib/mock-data.ts`. The image component preserves aspect ratio using contain sizing. Replace the temporary app icon with approved assets before launch.
 
 ## Vercel
 

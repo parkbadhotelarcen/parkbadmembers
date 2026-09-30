@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Parkbad Members",
-    short_name: "Parkbad",
+    name: "Parkhotel Bad Arcen Members",
+    short_name: "PBA Members",
     description: "Jouw verblijf. Jouw voordelen.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f7f6f2",
-    theme_color: "#003e33",
+    background_color: "#f2f5f6",
+    theme_color: "#123047",
     lang: "nl",
     icons: [{ src: "/icon", sizes: "512x512", type: "image/png" }],
   };

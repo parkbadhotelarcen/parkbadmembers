@@ -114,13 +114,13 @@ export function AppProvider({
           <section className="card detail-card access-gate">
             <div className="brand">
               <span>
-                PARKBAD<small>MEMBERS</small>
+                PARKHOTEL BAD ARCEN<small>MEMBERS</small>
               </span>
             </div>
             <h1>
               {issue.code === "MEMBER_MISSING"
-                ? "Word Parkbad Member"
-                : "Welkom bij Parkbad Members"}
+                ? "Word Parkhotel Bad Arcen Member"
+                : "Welkom bij Parkhotel Bad Arcen Members"}
             </h1>
             <p role="status">{issue.message || "Je membership laden…"}</p>
             {issue.code === "UNAUTHORIZED" && (

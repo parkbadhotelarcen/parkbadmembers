@@ -5,7 +5,7 @@ import { clerkAppearance } from "@/lib/clerk-appearance";
 export default function RegisterPage() {
   return (
     <AuthShell
-      title="Word Parkbad Member"
+      title="Word Parkhotel Bad Arcen Member"
       description="Maak je persoonlijke account aan en ontdek je voordelen."
       action={{ prompt: "Al Member?", label: "Inloggen", href: "/login" }}
     >

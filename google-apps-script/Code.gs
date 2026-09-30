@@ -1,4 +1,4 @@
-/* Parkbad Members write gateway. One deployment/project for ALL writers.
+/* Parkhotel Bad Arcen Members write gateway. One deployment/project for ALL writers.
  * Enable the advanced Google Sheets service. Reads and atomic batches use
  * the official Sheets API; LockService serializes the read/validate/write.
  * Script properties: SPREADSHEET_ID, WRITE_SECRET (>=32 random characters).

@@ -15,8 +15,8 @@ export function AuthShell({
   return (
     <main className="auth-page">
       <section className="auth-panel">
-        <Link href="/" className="auth-brand" aria-label="Parkbad Members Home">
-          <span>PARKBAD</span>
+        <Link href="/" className="auth-brand" aria-label="Parkhotel Bad Arcen Members Home">
+          <span>PARKHOTEL BAD ARCEN</span>
           <small>MEMBERS</small>
         </Link>
         <div className="auth-copy">

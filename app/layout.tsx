@@ -5,13 +5,13 @@ import { AppProvider } from "@/components/app-provider";
 import "./globals.css";
 import "./modern-theme.css";
 export const metadata: Metadata = {
-  title: { default: "Parkbad Members", template: "%s | Parkbad Members" },
-  description: "Jouw verblijf. Jouw voordelen. Welkom bij Parkbad Members.",
-  applicationName: "Parkbad Members",
+  title: { default: "Parkhotel Bad Arcen Members", template: "%s | Parkhotel Bad Arcen Members" },
+  description: "Jouw verblijf. Jouw voordelen. Welkom bij Parkhotel Bad Arcen Members.",
+  applicationName: "Parkhotel Bad Arcen Members",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Parkbad Members",
+    title: "Parkhotel Bad Arcen Members",
   },
   robots: { index: false, follow: false },
 };

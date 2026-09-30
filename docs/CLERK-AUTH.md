@@ -1,6 +1,6 @@
 # Clerk-authenticatie
 
-Parkbad Members gebruikt Clerk als enige actieve sessiebron. Clerk beheert wachtwoorden,
+Parkhotel Bad Arcen Members gebruikt Clerk als enige actieve sessiebron. Clerk beheert wachtwoorden,
 e-mailverificatie, herstelcodes en sessies. Google Sheets bevat geen wachtwoorden,
 tokens of hashes en blijft de datastore voor membership, bezoeken en beloningen.
 
@@ -45,5 +45,5 @@ Een geverifieerde activatie zet een bestaand `PENDING`-record op `ACTIVE`, maar 
 een blokkade nooit op.
 
 De bestaande NextAuth/Google-route blijft tijdelijk in de code voor een latere migratie,
-maar kan geen Parkbad-memberdata autoriseren. Als Google-login wordt heringeschakeld,
+maar kan geen Parkhotel Bad Arcen-memberdata autoriseren. Als Google-login wordt heringeschakeld,
 moet dat als provider binnen Clerk gebeuren zodat er één sessie- en accountbron blijft.

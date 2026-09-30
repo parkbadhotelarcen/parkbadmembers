@@ -1,19 +1,19 @@
-# Google instellen voor Parkbad Members
+# Google instellen voor Parkhotel Bad Arcen Members
 
 De integratiecode werkt standaard in demostand. Zet Sheets pas aan na deze handmatige stappen. Deel geen private key, JSON-sleutelbestand, OAuth-secret of scriptgeheim in chat of Git.
 
 ## 1. Cloud-project en spreadsheet
 
-1. Open https://console.cloud.google.com/ → projectselector bovenaan → **Nieuw project**. Naam: Parkbad Members. Selecteer dit project.
+1. Open https://console.cloud.google.com/ → projectselector bovenaan → **Nieuw project**. Naam: Parkhotel Bad Arcen Members. Selecteer dit project.
 2. **API's en services → Bibliotheek → Google Sheets API → Inschakelen**.
-3. Open https://sheets.google.com/ → **Leeg**. Naam: **Parkbad Members Database**.
+3. Open https://sheets.google.com/ → **Leeg**. Naam: **Parkhotel Bad Arcen Members Database**.
 4. Kopieer uit de URL het deel tussen `/d/` en `/edit`. Dit is **SPREADSHEET_ID** in Apps Script. Maak de spreadsheet niet openbaar.
 
 ## 2. Apps Script-gateway met LockService
 
 Alle schrijvers moeten hetzelfde Apps Script-project gebruiken. Locks werken niet tussen verschillende scriptprojecten en blokkeren geen handmatige Sheets-edits. Laat Members, Bezoeken, MemberBeloningen en technische tellers uitsluitend via deze gateway wijzigen. Gebruik de admin-API voor goedkeuring en beloningen; beperk bewerkrechten tot vertrouwde beheerders.
 
-1. Spreadsheet → **Extensies → Apps Script**. Naam: Parkbad Members Gateway.
+1. Spreadsheet → **Extensies → Apps Script**. Naam: Parkhotel Bad Arcen Members Gateway.
 2. Vervang **Code.gs** door [google-apps-script/Code.gs](../google-apps-script/Code.gs) uit deze repository.
 3. Links **Services + → Google Sheets API → Toevoegen** (v4, identifier Sheets). Bij een standaard Cloud-project wordt de API automatisch geactiveerd; bij een eigen gekoppeld Cloud-project moet de Sheets API daar ook aanstaan.
 4. **Projectinstellingen** (tandwiel) → **Manifestbestand appsscript.json weergeven** aanvinken. Open het bestand in de editor en gebruik [appsscript.json](../google-apps-script/appsscript.json).
@@ -24,7 +24,7 @@ Alle schrijvers moeten hetzelfde Apps Script-project gebruiken. Locks werken nie
 6. **Projectinstellingen → Scriptproperties → Scriptproperty toevoegen**:
    - **SPREADSHEET_ID**: ID uit stap 1.
    - **WRITE_SECRET**: het willekeurige geheim, minimaal 32 tekens. Exact dezelfde waarde komt in Vercel als **GOOGLE_APPS_SCRIPT_SECRET**.
-7. Voer `initializeDatabase` alleen uit bij een aantoonbaar lege, nieuwe database. Voer deze functie niet uit op de bestaande Parkbad Members-spreadsheet.
+7. Voer `initializeDatabase` alleen uit bij een aantoonbaar lege, nieuwe database. Voer deze functie niet uit op de bestaande Parkhotel Bad Arcen Members-spreadsheet.
 8. **Implementeren → Nieuwe implementatie → Type selecteren → Web-app**. **Uitvoeren als: Ik**. **Wie heeft toegang: Iedereen**. Klik **Implementeren** en autoriseer indien gevraagd. Het endpoint accepteert uitsluitend tijdgebonden HMAC-verzoeken vanuit de Next.js-server.
 9. Kopieer de **Web-app-URL**, eindigend op `/exec`, naar **GOOGLE_APPS_SCRIPT_URL** in Vercel. Gebruik niet `/dev`. De publiek bereikbare gateway accepteert uitsluitend HMAC-ondertekende serververzoeken; URL-kennis geeft geen toegang tot gegevens.
 10. Bij toekomstige scriptwijzigingen: **Implementeren → Implementaties beheren → Bewerken → Versie: Nieuwe versie → Implementeren**. Behoud hetzelfde scriptproject en dezelfde deployment-URL.

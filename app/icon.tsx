@@ -8,8 +8,8 @@ export default function Icon() {
       style={{
         width: "100%",
         height: "100%",
-        background: "#003e33",
-        color: "#d5b963",
+        background: "#123047",
+        color: "#6cd9ce",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -17,7 +17,7 @@ export default function Icon() {
         letterSpacing: 4,
       }}
     >
-      PARKBAD
+      PBA
     </div>,
     size,
   );
