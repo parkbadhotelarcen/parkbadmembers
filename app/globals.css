@@ -1826,8 +1826,8 @@ dd {
 .auth-copy h1 { color: var(--deep); font-size: clamp(27px, 7vw, 32px); line-height: 1.14; letter-spacing: -0.8px; }
 .auth-copy p { color: #5f6f69; margin: 9px auto 0; max-width: 400px; font-size: 15px; line-height: 1.5; }
 .clerk-root, .clerk-card-box, .clerk-card, .clerk-main, .clerk-form { width: 100%; min-width: 0; }
-.clerk-card-box { box-shadow: none; }
-.clerk-card { overflow: visible; padding: 0; background: transparent; border: 0; box-shadow: none; }
+.clerk-card-box { overflow: visible; box-shadow: none; }
+.clerk-card { overflow: visible; margin: 0; padding: 0; background: transparent; border: 0; box-shadow: none; }
 .clerk-main { gap: 15px; }
 .clerk-hidden { display: none; }
 .clerk-form { gap: 16px; }
@@ -1908,7 +1908,7 @@ dd {
 .auth-parent-brand img {
   display: block;
   width: auto;
-  height: 32px;
+  height: 37px;
   max-width: 145px;
   object-fit: contain;
 }
