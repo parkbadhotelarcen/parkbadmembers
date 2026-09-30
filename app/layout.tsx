@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { nlNL } from "@clerk/localizations";
 import { AppProvider } from "@/components/app-provider";
 import "./globals.css";
+import "./modern-theme.css";
 export const metadata: Metadata = {
   title: { default: "Parkbad Members", template: "%s | Parkbad Members" },
   description: "Jouw verblijf. Jouw voordelen. Welkom bij Parkbad Members.",
@@ -18,7 +19,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#003e33",
+  themeColor: "#123047",
 };
 export default function RootLayout({
   children,
