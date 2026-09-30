@@ -559,21 +559,33 @@ function Logout() {
         Uitloggen
         <ChevronRight size={19} />
       </button>
-      <dialog ref={dialog} className="confirm-dialog">
+      <dialog
+        ref={dialog}
+        className="confirm-dialog"
+        aria-labelledby="logout-dialog-title"
+        aria-describedby="logout-dialog-description"
+        onClick={(event) => {
+          if (event.target === event.currentTarget) dialog.current?.close();
+        }}
+      >
         <button
+          type="button"
           className="dialog-close"
           aria-label="Sluiten"
           onClick={() => dialog.current?.close()}
         >
-          <X />
+          <X size={23} />
         </button>
-        <h2>{mode === "demo" ? "Demo afsluiten?" : "Uitloggen?"}</h2>
-        <p>
+        <h2 id="logout-dialog-title">
+          {mode === "demo" ? "Demo afsluiten?" : "Uitloggen?"}
+        </h2>
+        <p id="logout-dialog-description">
           {mode === "demo"
             ? "Je toegevoegde demobezoeken worden gewist."
             : "Je kunt later opnieuw inloggen. Je gegevens blijven bewaard."}
         </p>
         <button
+          type="button"
           className="primary"
           onClick={() => {
             if (mode === "sheets") {
@@ -587,7 +599,11 @@ function Logout() {
         >
           {mode === "demo" ? "Demo afsluiten" : "Uitloggen"}
         </button>
-        <button className="secondary" onClick={() => dialog.current?.close()}>
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => dialog.current?.close()}
+        >
           Annuleren
         </button>
       </dialog>

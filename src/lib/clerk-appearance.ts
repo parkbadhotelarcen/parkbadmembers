@@ -23,6 +23,7 @@ export const clerkAppearance = {
     form: "clerk-form",
     formField: "clerk-field",
     formFieldRow: "clerk-field-row",
+    formFieldLabelRow: "clerk-label-row",
     formButtonPrimary: "clerk-primary",
     socialButtonsBlockButton: "clerk-social",
     socialButtonsBlockButtonText: "clerk-social-text",

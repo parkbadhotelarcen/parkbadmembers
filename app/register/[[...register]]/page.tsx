@@ -7,6 +7,7 @@ export default function RegisterPage() {
     <AuthShell
       title="Word Parkbad Member"
       description="Maak je persoonlijke account aan en ontdek je voordelen."
+      action={{ prompt: "Al Member?", label: "Inloggen", href: "/login" }}
     >
       <SignUp
         path="/register"

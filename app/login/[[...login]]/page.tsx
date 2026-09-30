@@ -7,6 +7,7 @@ export default function LoginPage() {
     <AuthShell
       title="Welkom terug"
       description="Log in om je Member Card, bezoeken en beloningen te bekijken."
+      action={{ prompt: "Nog geen Member?", label: "Word Member", href: "/register" }}
     >
       <SignIn
         path="/login"

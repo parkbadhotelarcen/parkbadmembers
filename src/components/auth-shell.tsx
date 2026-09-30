@@ -4,10 +4,12 @@ import Link from "next/link";
 export function AuthShell({
   title,
   description,
+  action,
   children,
 }: {
   title: string;
   description: string;
+  action: { prompt: string; label: string; href: string };
   children: React.ReactNode;
 }) {
   return (
@@ -22,6 +24,9 @@ export function AuthShell({
           <p>{description}</p>
         </div>
         {children}
+        <p className="auth-switch">
+          {action.prompt} <Link href={action.href}>{action.label}</Link>
+        </p>
         <div className="auth-parent-brand" aria-label="Onderdeel van Landal">
           <span>Onderdeel van</span>
           <Image
