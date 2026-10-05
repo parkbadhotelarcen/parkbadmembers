@@ -17,6 +17,7 @@ import {
   Info,
   LogOut,
   Mail,
+  MessageCircle,
   Settings,
   ShieldCheck,
   Sparkles,
@@ -99,6 +100,7 @@ function HomeScreen() {
           <UserRound size={24} />
         </Link>
       </header>
+      <Link className="assistant-entry card" href="/assistant"><MessageCircle/><div><h2>Parkhotel Assistent</h2><p>Een vraag over je verblijf? Stel hem hier.</p></div><ArrowRight/></Link>
       <div className="home-grid">
         <div className="home-cards">
           <ProgressCard progress={progress} name={nextRewardName} />
@@ -504,6 +506,7 @@ function Benefits() {
   );
 }
 const menu = [
+  { title: "Parkhotel Assistent", desc: "Digitale hotelassistent", href: "/assistant", icon: MessageCircle },
   {
     title: "Mijn profiel",
     desc: "Gegevens en instellingen",

@@ -9,9 +9,12 @@ import type {
   WriteOperations,
 } from "@/services/contracts";
 
-type GatewayOperation = keyof WriteOperations | "readTables";
+type GatewayOperation = keyof WriteOperations | "readTables" | "readKnowledge";
 
 export class AppsScriptGateway implements WriteGateway, SheetStore {
+  async readKnowledge(actor: Identity): Promise<unknown> {
+    return this.request("readKnowledge", actor, {});
+  }
   private async request(
     operation: GatewayOperation,
     actor: Identity,

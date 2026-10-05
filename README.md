@@ -42,3 +42,6 @@ Import `parkbadhotelarcen/parkbadmembers` into Vercel, choose Next.js, project r
 ## Remaining launch work
 
 Complete the manual Google configuration and live end-to-end checks. Add an admin screen, reward redemption/correction workflows, messaging, original logo, approved hotel photography, final terms/privacy and deletion policies before opening to real guests. The QR code identifies a member; it is not an authentication token.
+
+## Parkhotel Assistent
+Zie [configuratie en architectuur](docs/ASSISTANT.md).

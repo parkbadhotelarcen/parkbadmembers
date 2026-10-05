@@ -41,6 +41,7 @@ function doPost(event) {
     lock = LockService.getScriptLock();
     if (!lock.tryLock(10000)) pbFail('BUSY');
     var id=props.getProperty('SPREADSHEET_ID'); if (!id) pbFail('CONFIGURATION');
+    if(command.operation==='readKnowledge') return pbJson({ok:true,data:pbReadKnowledge(id)});
     var db=pbRead(id);
     var result=pbPlan(command,db,new Date());
     if (result.changes.length) Sheets.Spreadsheets.batchUpdate({requests:pbRequests(result.changes,db.sheetIds)},id);
@@ -48,6 +49,13 @@ function doPost(event) {
   } catch(error) {
     return pbJson({ok:false,code:error.pbCode || 'INTERNAL'});
   } finally { if (lock && lock.hasLock()) lock.releaseLock(); }
+}
+function pbReadKnowledge(id) {
+  var headers=['id','category','question','answer','keywords','active','updated_at'];
+  var result=Sheets.Spreadsheets.Values.get(id,"'CHATBOT_KNOWLEDGE'!A1:G1001",{valueRenderOption:'UNFORMATTED_VALUE'});
+  var rows=result.values || [];
+  if(!rows[0] || headers.some(function(h,i){return String(rows[0][i]||'').trim()!==h;}))pbFail('KNOWLEDGE_SCHEMA');
+  return rows.slice(1).filter(function(row){return pbBool(row[5]);}).map(function(row){var item={};headers.forEach(function(h,i){item[h]=String(row[i]===undefined?'':row[i]);});return item;});
 }
 function pbRead(id) {
   var names=Object.keys(PB_HEADERS);
